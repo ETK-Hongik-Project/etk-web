@@ -70,3 +70,4 @@ doc/api/
 .DS_Store
 pubspec.lock
 android/local.properties
+ios/Runner/GeneratedPluginRegistrant.h
