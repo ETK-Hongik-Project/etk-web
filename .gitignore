@@ -69,3 +69,4 @@ doc/api/
 # Mac
 .DS_Store
 pubspec.lock
+android/local.properties
