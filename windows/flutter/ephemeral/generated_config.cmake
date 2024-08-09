@@ -1,6 +1,6 @@
 # Generated code do not commit.
 file(TO_CMAKE_PATH "C:\\flutter" FLUTTER_ROOT)
-file(TO_CMAKE_PATH "D:\\GitHub\\etk-web-new" PROJECT_DIR)
+file(TO_CMAKE_PATH "D:\\GitHub\\etk-web" PROJECT_DIR)
 
 set(FLUTTER_VERSION "1.0.0+1" PARENT_SCOPE)
 set(FLUTTER_VERSION_MAJOR 1 PARENT_SCOPE)
@@ -11,13 +11,13 @@ set(FLUTTER_VERSION_BUILD 1 PARENT_SCOPE)
 # Environment variables to pass to tool_backend.sh
 list(APPEND FLUTTER_TOOL_ENVIRONMENT
   "FLUTTER_ROOT=C:\\flutter"
-  "PROJECT_DIR=D:\\GitHub\\etk-web-new"
+  "PROJECT_DIR=D:\\GitHub\\etk-web"
   "FLUTTER_ROOT=C:\\flutter"
-  "FLUTTER_EPHEMERAL_DIR=D:\\GitHub\\etk-web-new\\windows\\flutter\\ephemeral"
-  "PROJECT_DIR=D:\\GitHub\\etk-web-new"
-  "FLUTTER_TARGET=D:\\GitHub\\etk-web-new\\lib\\main.dart"
+  "FLUTTER_EPHEMERAL_DIR=D:\\GitHub\\etk-web\\windows\\flutter\\ephemeral"
+  "PROJECT_DIR=D:\\GitHub\\etk-web"
+  "FLUTTER_TARGET=D:\\GitHub\\etk-web\\lib\\main.dart"
   "DART_OBFUSCATION=false"
   "TRACK_WIDGET_CREATION=true"
   "TREE_SHAKE_ICONS=false"
-  "PACKAGE_CONFIG=D:\\GitHub\\etk-web-new\\.dart_tool\\package_config.json"
+  "PACKAGE_CONFIG=D:\\GitHub\\etk-web\\.dart_tool\\package_config.json"
 )
