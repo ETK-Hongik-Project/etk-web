@@ -44,7 +44,6 @@ app.*.map.json
 
 /pubspec.lock
 
-pubspec.lock
 /build
 /.dart_tool
 .flutter-plugins
@@ -55,3 +54,17 @@ android/gradlew
 /ios
 /ios/Flutter
 pubspec.lock
+.dart_tool/
+build/
+pubspec.lock
+
+doc/api/
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Mac
+.DS_Store
