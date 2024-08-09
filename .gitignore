@@ -68,3 +68,4 @@ doc/api/
 
 # Mac
 .DS_Store
+pubspec.lock
