@@ -23,23 +23,33 @@ class CommentBox extends StatelessWidget {
           content: const Text('정말로 삭제하시겠습니까?'),
           actions: <Widget>[
             TextButton(
-              child: Text(
+              child: const Text(
                 '확인',
                 style: TextStyle(
-                  color: Colors.deepPurple.withOpacity(0.5),
+                  color: Colors.deepPurple,
                 ),
               ),
               onPressed: () {
+                // 실제 댓글 삭제 로직 구현 ..
                 Navigator.of(context).pop(); // 팝업 닫기
               },
             ),
-            TextButton(
-              child: const Text('취소'),
-              onPressed: () {
-                // 여기에 실제 삭제 로직 추가
-                print("댓글 삭제");
-                Navigator.of(context).pop(); // 팝업 닫기
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.deepPurpleAccent,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: TextButton(
+                child: const Text(
+                  '취소',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // 팝업 닫기
+                },
+              ),
             ),
           ],
         );
