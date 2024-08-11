@@ -84,3 +84,32 @@ List<Post> getPosts(http.Response response) {
     throw Exception('Failed to load posts');
   }
 }
+
+void addPost(
+  BuildContext context,
+  int boardId,
+  String title,
+  String content,
+  bool isAnonymous,
+) async {
+  final accessToken = await getAccessToken();
+
+  final response = await http.post(
+    Uri.parse('http://$ip:8080/api/v1/boards/$boardId/posts'),
+    headers: {
+      'Content-Type': 'application/json',
+      "Authorization": "Bearer $accessToken",
+    },
+    body: jsonEncode({
+      "title": title,
+      "content": content,
+      "isAnonymous": isAnonymous,
+    }),
+  );
+
+  checkTokenValidation(context, response);
+
+  if (response.statusCode == 201) {
+    // 등록 성공
+  }
+}

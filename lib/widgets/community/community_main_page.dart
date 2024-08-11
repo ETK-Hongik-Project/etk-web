@@ -2,6 +2,7 @@ import 'package:etk_web/api/board.dart';
 import 'package:etk_web/api/post.dart';
 import 'package:etk_web/widgets/community/board/board_button.dart';
 import 'package:etk_web/widgets/community/board/board_page.dart';
+import 'package:etk_web/widgets/community/post/post_creation_button.dart';
 import 'package:flutter/material.dart';
 
 class CommunityMainPage extends StatelessWidget {
@@ -79,6 +80,8 @@ class CommunityMainPage extends StatelessWidget {
                               name: snapshot.data![index].name,
                               boardId: snapshot.data![index].boardId,
                               fetchPosts: fetchAllPosts,
+                              postCreationButton: PostCreationButton(
+                                  boardId: snapshot.data![index].boardId),
                             ),
                           ),
                         ],
