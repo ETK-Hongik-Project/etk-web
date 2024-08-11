@@ -9,13 +9,13 @@ class BoardPage extends StatefulWidget {
     required this.name,
     required this.boardId,
     required this.fetchPosts,
-    this.postCreationButton, // PostCreationButton을 외부에서 주입받도록 추가
+    this.postCreationButton,
   });
 
   final String name;
   final int boardId;
   final Future<List<Post>> Function(BuildContext, int) fetchPosts;
-  final Widget? postCreationButton; // 버튼을 선택적으로 주입받을 수 있게 함
+  final Widget? postCreationButton;
 
   @override
   _BoardPageState createState() => _BoardPageState();
@@ -24,13 +24,22 @@ class BoardPage extends StatefulWidget {
 class _BoardPageState extends State<BoardPage> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
+  late Future<List<Post>> _postsFuture; // fetchPosts를 저장하는 변수
   late final int boardId;
-  bool hasMorePosts = true; // 더 많은 게시물이 있는지 여부를 추적하는 상태 변수
+  bool hasMorePosts = true;
 
   @override
   void initState() {
     super.initState();
     boardId = widget.boardId;
+    _postsFuture = widget.fetchPosts(context, boardId); // 초기 fetchPosts 호출
+  }
+
+  Future<void> _refreshPosts() async {
+    setState(() {
+      _postsFuture =
+          widget.fetchPosts(context, boardId); // 새로고침 시 fetchPosts 다시 호출
+    });
   }
 
   @override
@@ -76,46 +85,50 @@ class _BoardPageState extends State<BoardPage> {
           Column(
             children: [
               Expanded(
-                child: FutureBuilder<List<Post>>(
-                  future: widget.fetchPosts(context, boardId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No posts available'));
-                    } else {
-                      return ListView.builder(
-                        itemCount: snapshot.data!.length,
-                        itemBuilder: (context, index) {
-                          return Column(
-                            children: [
-                              PostPageSelectionButton(
-                                title: snapshot.data![index].title,
-                                authorName: snapshot.data![index].authorName,
-                                createdTime: snapshot.data![index].createdTime,
-                                pageWidget: PostPage(
-                                  boardName: widget.name,
+                child: RefreshIndicator(
+                  onRefresh: _refreshPosts, // 새로고침 콜백
+                  child: FutureBuilder<List<Post>>(
+                    future: _postsFuture, // fetchPosts를 사용하는 FutureBuilder
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No posts available'));
+                      } else {
+                        return ListView.builder(
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (context, index) {
+                            return Column(
+                              children: [
+                                PostPageSelectionButton(
                                   title: snapshot.data![index].title,
-                                  postId: snapshot.data![index].postId,
-                                  content: snapshot.data![index].content,
                                   authorName: snapshot.data![index].authorName,
                                   createdTime:
                                       snapshot.data![index].createdTime,
+                                  pageWidget: PostPage(
+                                    boardName: widget.name,
+                                    title: snapshot.data![index].title,
+                                    postId: snapshot.data![index].postId,
+                                    content: snapshot.data![index].content,
+                                    authorName:
+                                        snapshot.data![index].authorName,
+                                    createdTime:
+                                        snapshot.data![index].createdTime,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
             ],
           ),
-          // PostCreationButton이 주입된 경우에만 버튼이 표시됨
           if (widget.postCreationButton != null) widget.postCreationButton!,
         ],
       ),
