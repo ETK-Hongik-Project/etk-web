@@ -66,6 +66,16 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
+  void _addComment(BuildContext context, int postId, String content) {
+    if (_commentController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('내용을 입력해주세요')),
+      );
+      return;
+    }
+    addComment(context, postId, content);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,10 +160,18 @@ class _PostPageState extends State<PostPage> {
                 ),
                 const SizedBox(width: 8),
                 CommentCreationBox(
-                  onPressed: () {
-                    addComment(context, postId, _commentController.text);
-                    _commentController.clear(); // 댓글 입력 필드 초기화
-                    _loadComments(); // 댓글 목록 새로고침
+                  onPressed: () async {
+                    try {
+                      await addComment(
+                          context, postId, _commentController.text);
+                      _commentController.clear(); // 댓글 입력 필드 초기화
+                      _loadComments(); // 댓글 목록 새로고침
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('내용을 입력해주세요')),
+                      );
+                      return;
+                    }
                   },
                 ),
               ],

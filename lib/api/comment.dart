@@ -85,7 +85,8 @@ void deleteComment(BuildContext context, int commentId) async {
   }
 }
 
-void addComment(BuildContext context, int postId, String content) async {
+Future<void> addComment(
+    BuildContext context, int postId, String content) async {
   final accessToken = await getAccessToken();
 
   final response = await http.post(
@@ -105,6 +106,9 @@ void addComment(BuildContext context, int postId, String content) async {
 
   if (response.statusCode == 201) {
     // 댓글 등록 성공
+  } else if (response.statusCode == 400) {
+    logger.e('Failed to add comment (no content) : ${response.statusCode}');
+    throw Exception('Failed to add comment (no content)');
   } else {
     logger.e('Failed to add comment : ${response.statusCode}');
     throw Exception('Failed to add comment');
