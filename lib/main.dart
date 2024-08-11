@@ -1,10 +1,12 @@
 import 'package:camera/camera.dart';
 import 'package:etk_web/widgets/login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'widgets/keyboard/custom_ui.dart';
 
+var logger = Logger();
 CameraDescription? frontCamera;
 // ignore: constant_identifier_names
 const String local_ip = "10.0.2.2";
