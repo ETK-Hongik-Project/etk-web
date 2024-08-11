@@ -48,10 +48,10 @@ Future<List<Comment>> fetchAllComments(BuildContext context, int postId) async {
 
   checkTokenValidation(context, response);
 
-  return getPosts(response);
+  return getComments(response);
 }
 
-List<Comment> getPosts(http.Response response) {
+List<Comment> getComments(http.Response response) {
   if (response.statusCode == 200) {
     String responseBody = utf8.decode(response.bodyBytes);
     Map<String, dynamic> jsonResponse = json.decode(responseBody);
@@ -62,5 +62,77 @@ List<Comment> getPosts(http.Response response) {
         .toList();
   } else {
     throw Exception('Failed to load comments');
+  }
+}
+
+void deleteComment(BuildContext context, int commentId) async {
+  final accessToken = await getAccessToken();
+
+  final response = await http.delete(
+    Uri.parse('http://$ip:8080/api/v1/comments/$commentId'),
+    headers: {
+      "Authorization": "Bearer $accessToken",
+    },
+  );
+
+  checkTokenValidation(context, response);
+
+  if (response.statusCode == 200) {
+    // 댓글 삭제 성공
+  } else {
+    logger.e('Failed to delete comment : ${response.statusCode}');
+    throw Exception('Failed to delete comment');
+  }
+}
+
+void addComment(BuildContext context, int postId, String content) async {
+  final accessToken = await getAccessToken();
+
+  final response = await http.post(
+    Uri.parse('http://$ip:8080/api/v1/posts/$postId/comments'),
+    headers: {
+      'Content-Type': 'application/json',
+      "Authorization": "Bearer $accessToken",
+    },
+    body: jsonEncode(
+      {
+        "content": content,
+      },
+    ),
+  );
+
+  checkTokenValidation(context, response);
+
+  if (response.statusCode == 201) {
+    // 댓글 등록 성공
+  } else {
+    logger.e('Failed to add comment : ${response.statusCode}');
+    throw Exception('Failed to add comment');
+  }
+}
+
+void addReply(BuildContext context, int commentId, String content) async {
+  final accessToken = await getAccessToken();
+
+  final response = await http.post(
+    Uri.parse('http://$ip:8080/api/v1/comments/$commentId'),
+    headers: {
+      'Content-Type': 'application/json',
+      "Authorization": "Bearer $accessToken",
+    },
+    body: jsonEncode(
+      {
+        "content": content,
+      },
+    ),
+  );
+
+  checkTokenValidation(context, response);
+
+  if (response.statusCode == 201) {
+    // 대댓글 등록 성공
+  } else {
+    logger.e('Failed to add comment : ${response.statusCode}');
+    throw Exception('Failed to add comment');
   }
 }

@@ -1,7 +1,8 @@
 import 'package:etk_web/api/comment.dart';
 import 'package:etk_web/api/reply.dart';
-import 'package:etk_web/widgets/community/post/comment_box.dart';
-import 'package:etk_web/widgets/community/post/reply_box.dart';
+import 'package:etk_web/widgets/community/comment/comment_box.dart';
+import 'package:etk_web/widgets/community/comment/comment_creation_box.dart';
+import 'package:etk_web/widgets/community/comment/reply_box.dart';
 import 'package:flutter/material.dart';
 
 class PostPage extends StatefulWidget {
@@ -28,12 +29,16 @@ class PostPage extends StatefulWidget {
 
 class _PostPageState extends State<PostPage> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
   late final String boardName;
   late final String title;
   late final int postId;
   late final String content;
   late final String authorName;
   late final String createdTime;
+
+  List<Comment> comments = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -43,6 +48,22 @@ class _PostPageState extends State<PostPage> {
     content = widget.content;
     authorName = widget.authorName;
     createdTime = widget.createdTime;
+    _loadComments();
+  }
+
+  Future<void> _loadComments() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      comments = await fetchAllComments(context, postId);
+    } catch (e) {
+      // 에러 처리
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -107,6 +128,37 @@ class _PostPageState extends State<PostPage> {
               ),
             ),
             const SizedBox(height: 12),
+            Divider(color: Colors.deepPurple.withOpacity(0.2)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _commentController,
+                    decoration: InputDecoration(
+                      hintText: '댓글을 입력하세요...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: const Color.fromARGB(19, 167, 157, 157),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CommentCreationBox(
+                  onPressed: () {
+                    addComment(context, postId, _commentController.text);
+                    _commentController.clear(); // 댓글 입력 필드 초기화
+                    _loadComments(); // 댓글 목록 새로고침
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Divider(color: Colors.deepPurple.withOpacity(0.2)),
             Expanded(
               child: FutureBuilder<List<Comment>>(
