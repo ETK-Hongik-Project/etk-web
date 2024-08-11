@@ -33,7 +33,7 @@ class BottomTextField extends StatelessWidget {
     var month = now.month < 10 ? '0${now.month}' : '${now.month}';
     var day = now.day < 10 ? '0${now.day}' : '${now.day}';
     var hour = now.hour < 10 ? '0${now.hour}' : '${now.hour}';
-    var minute = now.hour < 10 ? '0${now.hour}' : '${now.hour}';
+    var minute = now.minute < 10 ? '0${now.minute}' : '${now.minute}';
     var second = now.second < 10 ? '0${now.second}' : '${now.second}';
     var millisecond = now.millisecond;
     var time = "$year-$month-$day $hour:$minute:$second:$millisecond";
@@ -46,15 +46,15 @@ class BottomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const int textLength = 12; // 입력한 문자가 보여지는 길이
-    String textToDisplay = displayText.isNotEmpty ? displayText : '글자가 출력됩니다.';
-    String displayedText = textToDisplay.length >= textLength
-        ? '...${textToDisplay.substring(textToDisplay.length - textLength)}'
-        : textToDisplay;
+    const int maxDisplayLength = 12; // 화면에 표시할 최대 글자 수
+    String textToDisplay;
 
-    print("displayText: $displayText");
-    print(displayedText);
-    print(textToDisplay.length);
+    if (displayText.length > maxDisplayLength) {
+      textToDisplay =
+          '...${displayText.substring(displayText.length - maxDisplayLength)}';
+    } else {
+      textToDisplay = displayText;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -81,12 +81,13 @@ class BottomTextField extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  displayedText,
+                  textToDisplay.isNotEmpty ? textToDisplay : '글자가 출력됩니다.',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.left,
+                  overflow: TextOverflow.visible,
                 ),
               ),
             ),
