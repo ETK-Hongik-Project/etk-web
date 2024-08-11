@@ -37,6 +37,7 @@ Future<List<Post>> fetchAllPosts(BuildContext context, int boardId) async {
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/boards/$boardId/posts'),
     headers: {
+      'Content-Type': 'application/json',
       "Authorization": "Bearer $accessToken",
     },
   );
@@ -51,6 +52,7 @@ Future<List<Post>> fetchMyPosts(BuildContext context) async {
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/posts'),
     headers: {
+      'Content-Type': 'application/json',
       "Authorization": "Bearer $accessToken",
     },
   );
@@ -65,6 +67,7 @@ Future<List<Post>> fetchCommentedPosts(BuildContext context) async {
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/commented-posts'),
     headers: {
+      'Content-Type': 'application/json',
       "Authorization": "Bearer $accessToken",
     },
   );
@@ -111,5 +114,8 @@ void addPost(
 
   if (response.statusCode == 201) {
     // 등록 성공
+  } else {
+    logger.e('Failed to create post : ${response.statusCode}');
+    throw Exception('Failed to create post');
   }
 }

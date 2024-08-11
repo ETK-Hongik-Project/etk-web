@@ -37,6 +37,7 @@ Future<User> fetchUserDetails(BuildContext context) async {
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/user'),
     headers: {
+      'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
     },
   );

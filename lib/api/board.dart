@@ -28,6 +28,7 @@ Future<List<Board>> fetchAllBoards(BuildContext context) async {
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/boards'),
     headers: {
+      'Content-Type': 'application/json',
       "Authorization": "Bearer $accessToken",
     },
   );
@@ -44,6 +45,7 @@ Future<List<Board>> fetchBoardsByKeyword(
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/boards?keyword=$keyword'),
     headers: {
+      'Content-Type': 'application/json',
       "Authorization": "Bearer $accessToken",
     },
   );
@@ -58,6 +60,7 @@ Future<Board> fetchBoardByBoardId(BuildContext context, String boardId) async {
   final response = await http.get(
     Uri.parse('http://$ip:8080/api/v1/boards/$boardId'),
     headers: {
+      'Content-Type': 'application/json',
       "Authorization": "Bearer $accessToken",
     },
   );
