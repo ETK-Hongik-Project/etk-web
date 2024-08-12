@@ -66,16 +66,6 @@ class _PostPageState extends State<PostPage> {
     }
   }
 
-  void _addComment(BuildContext context, int postId, String content) {
-    if (_commentController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('내용을 입력해주세요')),
-      );
-      return;
-    }
-    addComment(context, postId, content);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -198,6 +188,7 @@ class _PostPageState extends State<PostPage> {
                               commenterName:
                                   snapshot.data![index].commenterName,
                               createdTime: snapshot.data![index].createdTime,
+                              isDeleted: snapshot.data![index].isDeleted,
                             ),
                             Column(
                               children: [

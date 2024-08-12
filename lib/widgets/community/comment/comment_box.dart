@@ -1,18 +1,39 @@
+import 'package:etk_web/api/comment.dart';
 import 'package:flutter/material.dart';
 
-class CommentBox extends StatelessWidget {
-  const CommentBox({
-    super.key,
-    required this.commentId,
-    required this.content,
-    required this.commenterName,
-    required this.createdTime,
-  });
+class CommentBox extends StatefulWidget {
+  const CommentBox(
+      {super.key,
+      required this.commentId,
+      required this.content,
+      required this.commenterName,
+      required this.createdTime,
+      required this.isDeleted});
 
   final int commentId;
   final String content;
   final String commenterName;
   final String createdTime;
+  final bool isDeleted;
+
+  @override
+  _CommentBoxState createState() => _CommentBoxState();
+}
+
+class _CommentBoxState extends State<CommentBox> {
+  late String content;
+  late String commenterName;
+  late String createdTime;
+  late bool isDeleted;
+
+  @override
+  void initState() {
+    super.initState();
+    content = widget.content;
+    commenterName = widget.commenterName;
+    createdTime = widget.createdTime;
+    isDeleted = widget.isDeleted;
+  }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
     showDialog(
@@ -29,9 +50,21 @@ class CommentBox extends StatelessWidget {
                   color: Colors.deepPurple,
                 ),
               ),
-              onPressed: () {
-                // 실제 댓글 삭제 로직 구현 ..
-                Navigator.of(context).pop(); // 팝업 닫기
+              onPressed: () async {
+                // 댓글 삭제 요청
+                var deletedComment =
+                    await deleteComment(context, widget.commentId);
+                if (mounted) {
+                  setState(() {
+                    content = deletedComment.content;
+                    commenterName = deletedComment.commenterName;
+                    createdTime = deletedComment.createdTime;
+                    isDeleted = deletedComment.isDeleted;
+                  });
+                }
+
+                // 팝업 닫기
+                Navigator.of(context).pop();
               },
             ),
             Container(
@@ -75,23 +108,25 @@ class CommentBox extends StatelessWidget {
                 commenterName,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              const Spacer(), // Spacer 위젯 추가
+              const Spacer(),
               TextButton(
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero, // 패딩 제거
-                  minimumSize: const Size(50, 20), // 최소 크기 설정
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 클릭 영역 축소
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(50, 20),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () => print("대댓글 생성"),
+                onPressed: isDeleted ? null : () => print("대댓글 생성"),
                 child: const Text('답글'),
               ),
               TextButton(
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero, // 패딩 제거
-                  minimumSize: const Size(50, 20), // 최소 크기 설정
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 클릭 영역 축소
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(50, 20),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () => _showDeleteConfirmationDialog(context),
+                onPressed: isDeleted
+                    ? null
+                    : () => _showDeleteConfirmationDialog(context),
                 child: const Text('삭제'),
               ),
             ],

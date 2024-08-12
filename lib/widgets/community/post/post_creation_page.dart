@@ -89,7 +89,7 @@ class _PostCreationPageState extends State<PostCreationPage> {
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
-              child: const Text('글 올리기'),
+              child: const Text('글 쓰기'),
             ),
           ],
         ),

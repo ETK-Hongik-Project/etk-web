@@ -12,6 +12,7 @@ class Comment {
     required this.content,
     required this.commenterName,
     required this.createdTime,
+    required this.isDeleted,
     required this.replies,
   });
 
@@ -19,6 +20,7 @@ class Comment {
   final String content;
   final String commenterName;
   final String createdTime;
+  final bool isDeleted;
   final List<Reply> replies;
 
   factory Comment.from(Map<String, dynamic> data) {
@@ -31,6 +33,7 @@ class Comment {
       content: data['content'],
       commenterName: data['commenterName'],
       createdTime: data['createdTime'],
+      isDeleted: data['isDeleted'],
       replies: repliesList,
     );
   }
@@ -51,6 +54,33 @@ Future<List<Comment>> fetchAllComments(BuildContext context, int postId) async {
   return getComments(response);
 }
 
+Future<Comment> fetchComment(BuildContext context, int commentId) async {
+  final accessToken = await getAccessToken();
+
+  final response = await http.get(
+    Uri.parse('http://$ip:8080/api/v1/comments/$commentId'),
+    headers: {
+      "Authorization": "Bearer $accessToken",
+    },
+  );
+
+  checkTokenValidation(context, response);
+
+  return getComment(response);
+}
+
+Comment getComment(http.Response response) {
+  if (response.statusCode == 200) {
+    String responseBody = utf8.decode(response.bodyBytes);
+    Map<String, dynamic> jsonResponse = json.decode(responseBody);
+    dynamic commentData = jsonResponse['data']; // json 반환값중 'data' 값
+
+    return Comment.from(commentData);
+  } else {
+    throw Exception('Failed to load comments');
+  }
+}
+
 List<Comment> getComments(http.Response response) {
   if (response.statusCode == 200) {
     String responseBody = utf8.decode(response.bodyBytes);
@@ -65,7 +95,7 @@ List<Comment> getComments(http.Response response) {
   }
 }
 
-void deleteComment(BuildContext context, int commentId) async {
+Future<Comment> deleteComment(BuildContext context, int commentId) async {
   final accessToken = await getAccessToken();
 
   final response = await http.delete(
@@ -79,10 +109,21 @@ void deleteComment(BuildContext context, int commentId) async {
 
   if (response.statusCode == 200) {
     // 댓글 삭제 성공
+  } else if (response.statusCode == 400) {
+    logger.e(
+        "Failed to delete comment (not user's commnet) : ${response.statusCode}");
+    throw Exception("Failed to delete comment (not user's commnet)");
+  } else if (response.statusCode == 404) {
+    logger.e(
+        "Failed to delete comment (invailid user or comment not existed) : ${response.statusCode}");
+    throw Exception(
+        'Failed to delete comment (invailid user or comment not existed)');
   } else {
     logger.e('Failed to delete comment : ${response.statusCode}');
     throw Exception('Failed to delete comment');
   }
+
+  return getComment(response);
 }
 
 Future<void> addComment(
