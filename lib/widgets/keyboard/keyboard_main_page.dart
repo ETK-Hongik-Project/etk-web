@@ -237,56 +237,67 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
             fontWeight: FontWeight.bold,
           ),
         ),
-        // 캐시에 저장된 이미지들 확인하는 버튼 (추후 제거할 것!)
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => logout(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.photo),
-            onPressed: () async {
-              final directory = await getTemporaryDirectory();
-              final files = directory.listSync().whereType<File>().toList();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GalleryScreen(imageFiles: files),
-                ),
-              );
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu_rounded),
+            onSelected: (String result) {
+              switch (result) {
+                case 'gallery':
+                  _navigateToGalleryScreen(context);
+                  break;
+                case 'file_list':
+                  _navigateToFileListScreen(context);
+                  break;
+                case 'community':
+                  _navigateToCommunityMainPage(context);
+                  break;
+                case 'logout':
+                  logout(context);
+                  break;
+              }
             },
-          ),
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 8,
-            ),
-            child: IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const FileListScreen()),
-                  );
-                },
-                icon: const Icon(
-                  Icons.comment,
-                  size: 28,
-                )),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 8, right: 16, left: 8),
-            child: IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const CommunityMainPage()),
-                  );
-                },
-                icon: const Icon(
-                  Icons.people_alt,
-                  size: 28,
-                )),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'gallery',
+                child: Row(
+                  children: [
+                    Icon(Icons.photo),
+                    SizedBox(width: 6),
+                    Text('사진 확인'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'file_list',
+                child: Row(
+                  children: [
+                    Icon(Icons.comment),
+                    SizedBox(width: 6),
+                    Text('대화 기록'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'community',
+                child: Row(
+                  children: [
+                    Icon(Icons.people_alt),
+                    SizedBox(width: 6),
+                    Text('커뮤니티'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout),
+                    SizedBox(width: 6),
+                    Text('로그아웃'),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(
             width: 10,
@@ -336,6 +347,35 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _navigateToGalleryScreen(BuildContext context) async {
+    final directory = await getTemporaryDirectory();
+    final files = directory.listSync().whereType<File>().toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => GalleryScreen(imageFiles: files),
+      ),
+    );
+  }
+
+  void _navigateToFileListScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FileListScreen(),
+      ),
+    );
+  }
+
+  void _navigateToCommunityMainPage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CommunityMainPage(),
       ),
     );
   }
