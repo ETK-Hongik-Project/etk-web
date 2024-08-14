@@ -1,5 +1,5 @@
 import 'package:camera/camera.dart';
-import 'package:etk_web/widgets/login_page.dart';
+import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
