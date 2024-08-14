@@ -111,8 +111,8 @@ Future<Comment> deleteComment(BuildContext context, int commentId) async {
     // 댓글 삭제 성공
   } else if (response.statusCode == 400) {
     logger.e(
-        "Failed to delete comment (not user's commnet) : ${response.statusCode}");
-    throw Exception("Failed to delete comment (not user's commnet)");
+        "Failed to delete comment (not user's comment) : ${response.statusCode}");
+    throw Exception("Failed to delete comment (not user's comment)");
   } else if (response.statusCode == 404) {
     logger.e(
         "Failed to delete comment (invailid user or comment not existed) : ${response.statusCode}");
@@ -156,7 +156,8 @@ Future<void> addComment(
   }
 }
 
-void addReply(BuildContext context, int commentId, String content) async {
+Future<void> addReply(
+    BuildContext context, int commentId, String content) async {
   final accessToken = await getAccessToken();
 
   final response = await http.post(

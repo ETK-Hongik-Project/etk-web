@@ -46,6 +46,22 @@ Future<List<Post>> fetchAllPosts(BuildContext context, int boardId) async {
   return getPosts(response);
 }
 
+Future<List<Post>> fetchKeywordedPosts(
+    BuildContext context, int boardId, String keyword) async {
+  final accessToken = await getAccessToken();
+
+  final response = await http.get(
+    Uri.parse('http://$ip:8080/api/v1/boards/$boardId/posts?keyword=$keyword'),
+    headers: {
+      'Content-Type': 'application/json',
+      "Authorization": "Bearer $accessToken",
+    },
+  );
+  checkTokenValidation(context, response);
+
+  return getPosts(response);
+}
+
 Future<List<Post>> fetchMyPosts(BuildContext context) async {
   final accessToken = await getAccessToken();
 
