@@ -1,4 +1,4 @@
-import 'widgets/keyboard/custom_ui.dart';
+import 'widgets/keyboard/keyboard_main_page.dart';
 
 // TODO:
 // 1. Handling Undo
@@ -7,8 +7,8 @@ import 'widgets/keyboard/custom_ui.dart';
 abstract class KeyboardState {
   String board = "";
   // TODO: 나중에는 int gaze가 아니라, [type] input 으로 변경하는 것이 좋아보임.
-  void handleInput(CustomUIState context, int gaze);
-  void undo(CustomUIState context);
+  void handleInput(KeyboardMainPageState context, int gaze);
+  void undo(KeyboardMainPageState context);
 }
 
 // 0 : top, 1 : bottom, 2 : left, 3: right, 4: center
@@ -27,7 +27,7 @@ class S0State implements KeyboardState {
   String board = "consonant";
 
   @override
-  void handleInput(CustomUIState context, int gaze) {
+  void handleInput(KeyboardMainPageState context, int gaze) {
     if (gaze == 4) {
       context.incrementIdx();
       context.updateLabels(context.getIdx(), board);
@@ -39,7 +39,7 @@ class S0State implements KeyboardState {
   }
 
   @override
-  void undo(CustomUIState context) {
+  void undo(KeyboardMainPageState context) {
     switch (prevState) {
       case 's4':
         context.changeState(S4State());
@@ -63,7 +63,7 @@ class S1State implements KeyboardState {
   String board = "vowel";
 
   @override
-  void handleInput(CustomUIState context, int gaze) {
+  void handleInput(KeyboardMainPageState context, int gaze) {
     if (gaze == 4) {
       context.incrementIdx();
       context.updateLabels(context.getIdx(), board);
@@ -75,7 +75,7 @@ class S1State implements KeyboardState {
   }
 
   @override
-  void undo(CustomUIState context) {
+  void undo(KeyboardMainPageState context) {
     context.changeState(S0State(''));
   }
 }
@@ -92,7 +92,7 @@ class S2State implements KeyboardState {
   String board = 'select';
 
   @override
-  void handleInput(CustomUIState context, int gaze) {
+  void handleInput(KeyboardMainPageState context, int gaze) {
     if (firstSelect) {
       if (gaze == 0) {
         // top(consonant)
@@ -122,7 +122,7 @@ class S2State implements KeyboardState {
   }
 
   @override
-  void undo(CustomUIState context) {
+  void undo(KeyboardMainPageState context) {
     context.changeState(S1State());
   }
 }
@@ -137,7 +137,7 @@ class S3State implements KeyboardState {
   String board = 'consonant';
 
   @override
-  void handleInput(CustomUIState context, int gaze) {
+  void handleInput(KeyboardMainPageState context, int gaze) {
     if (gaze == 4) {
       context.incrementIdx();
       context.updateLabels(context.getIdx(), board);
@@ -149,7 +149,7 @@ class S3State implements KeyboardState {
   }
 
   @override
-  void undo(CustomUIState context) {
+  void undo(KeyboardMainPageState context) {
     context.changeState(S2State());
   }
 }
@@ -164,7 +164,7 @@ class S4State implements KeyboardState {
   String board = 'select';
 
   @override
-  void handleInput(CustomUIState context, int gaze) {
+  void handleInput(KeyboardMainPageState context, int gaze) {
     if (gaze == 0) {
       // top(consonant)
       context.changeState(S0State('s4'));
@@ -175,7 +175,7 @@ class S4State implements KeyboardState {
   }
 
   @override
-  void undo(CustomUIState context) {
+  void undo(KeyboardMainPageState context) {
     context.changeState(S2State());
   }
 }
@@ -190,7 +190,7 @@ class S5State implements KeyboardState {
   String board = 'select';
 
   @override
-  void handleInput(CustomUIState context, int gaze) {
+  void handleInput(KeyboardMainPageState context, int gaze) {
     if (gaze == 0) {
       // top(consonant)
       context.changeState(S0State('s5'));
@@ -201,7 +201,7 @@ class S5State implements KeyboardState {
   }
 
   @override
-  void undo(CustomUIState context) {
+  void undo(KeyboardMainPageState context) {
     context.changeState(S3State());
   }
 }

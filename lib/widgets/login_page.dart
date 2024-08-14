@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:etk_web/main.dart';
-import 'package:etk_web/widgets/keyboard/custom_ui.dart';
+import 'package:etk_web/widgets/keyboard/keyboard_main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
           // CustomUI 페이지로 이동
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => CustomUI()),
+            MaterialPageRoute(builder: (context) => KeyboardMainPage()),
           );
         } else {
           setState(() {

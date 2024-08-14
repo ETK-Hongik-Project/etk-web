@@ -18,16 +18,17 @@ import 'bottom_text_field.dart';
 import 'camera_preview_widget.dart';
 import 'center_content.dart';
 
-class CustomUI extends StatefulWidget {
+class KeyboardMainPage extends StatefulWidget {
   final CameraDescription camera = frontCamera!;
 
-  CustomUI({super.key});
+  KeyboardMainPage({super.key});
 
   @override
-  CustomUIState createState() => CustomUIState();
+  KeyboardMainPageState createState() => KeyboardMainPageState();
 }
 
-class CustomUIState extends State<CustomUI> with TickerProviderStateMixin {
+class KeyboardMainPageState extends State<KeyboardMainPage>
+    with TickerProviderStateMixin {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   final _hangulInput = HangulInput('');

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'widgets/keyboard/custom_ui.dart';
+import 'widgets/keyboard/keyboard_main_page.dart';
 
 var logger = Logger();
 CameraDescription? frontCamera;
@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
             return const CircularProgressIndicator();
           } else {
             if (snapshot.data == true) {
-              return CustomUI();
+              return KeyboardMainPage();
             } else {
               return const LoginPage();
             }
