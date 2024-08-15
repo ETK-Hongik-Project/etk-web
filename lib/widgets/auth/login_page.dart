@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:etk_web/main.dart';
+import 'package:etk_web/widgets/auth/create_account_page.dart';
 import 'package:etk_web/widgets/keyboard/keyboard_main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -87,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
           children: <Widget>[
             TextField(
               controller: _usernameController,
-              decoration: const InputDecoration(labelText: '사용자 이름'),
+              decoration: const InputDecoration(labelText: '아이디'),
             ),
             TextField(
               controller: _passwordController,
@@ -110,6 +111,20 @@ class _LoginPageState extends State<LoginPage> {
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
+            TextButton(
+              child: const Text(
+                "아직 계정이 없으신가요? 지금 계정 만들기",
+                style: TextStyle(color: Colors.black45),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateAccountPage(),
+                  ),
+                );
+              },
+            )
           ],
         ),
       ),
