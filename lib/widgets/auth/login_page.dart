@@ -1,12 +1,7 @@
-import 'dart:convert';
-
-import 'package:etk_web/main.dart';
+import 'package:etk_web/api/auth/login.dart';
 import 'package:etk_web/widgets/auth/create_account_page.dart';
-import 'package:etk_web/widgets/keyboard/keyboard_main_page.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({
@@ -32,41 +27,24 @@ class _LoginPageState extends State<LoginPage> {
 
     final String username = _usernameController.text;
     final String password = _passwordController.text;
+    const String NoUsernameEnteredError = "[username](은)는 아이디를 입력해 주세요";
+    const String NoPasswordEnteredError = "[password](은)는 비밀번호를 입력해주세요";
+    const String NoUserExistsError = "존재하지 않는 유저입니다";
 
     try {
-      final response = await http.post(
-        Uri.parse('http://$ip:8080/api/v1/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      );
-
-      if (response.statusCode == 200) {
-        final accessToken = response.headers['authorization'];
-        final refreshToken = response.headers['refreshtoken'];
-
-        if (accessToken != null && refreshToken != null) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('accessToken', accessToken);
-          await prefs.setString('refreshToken', refreshToken);
-
-          // CustomUI 페이지로 이동
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => KeyboardMainPage()),
-          );
-        } else {
-          setState(() {
-            _errorMessage = '토큰을 받아오지 못했습니다.';
-          });
-        }
-      } else {
-        setState(() {
-          _errorMessage = '로그인 실패: ${response.statusCode}';
-        });
-      }
+      await login(context, username, password);
     } catch (e) {
       setState(() {
-        _errorMessage = '로그인 실패: $e';
+        _errorMessage = "로그인 실패:";
+      });
+      setState(() {
+        if (e.toString().contains(NoUsernameEnteredError)) {
+          _errorMessage = "$_errorMessage\n아이디를 입력해주세요.";
+        } else if (e.toString().contains(NoPasswordEnteredError)) {
+          _errorMessage = "$_errorMessage\n비밀번호를 입력해주세요.";
+        } else if (e.toString().contains(NoUserExistsError)) {
+          _errorMessage = "$_errorMessage\n잘못된 아이디 혹은 비밀번호입니다.";
+        }
       });
     }
 
@@ -103,18 +81,10 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: _login,
                 child: const Text('로그인'),
               ),
-            if (_errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Text(
-                  _errorMessage!,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
             TextButton(
               child: const Text(
                 "아직 계정이 없으신가요? 지금 계정 만들기",
-                style: TextStyle(color: Colors.black45),
+                style: TextStyle(color: Colors.deepPurple),
               ),
               onPressed: () {
                 Navigator.push(
@@ -124,7 +94,15 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 );
               },
-            )
+            ),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
           ],
         ),
       ),
