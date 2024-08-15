@@ -1,4 +1,5 @@
 import 'package:etk_web/api/user.dart';
+import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
 
 class CreateAccountPage extends StatefulWidget {
@@ -39,13 +40,36 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
     try {
       await join(name, username, password, email);
+
+      // 예외가 발생하지 않았을 경우
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('환영합니다!'),
+            content: const Text('가입이 성공적으로 완료되었습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // 팝업 닫기
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const LoginPage(), // LoginPage 위젯으로 이동
+                    ),
+                  );
+                },
+                child: const Text('로그인 페이지로 이동'),
+              ),
+            ],
+          );
+        },
+      );
     } catch (e) {
       setState(() {
         _errorMessage = "회원가입 실패:";
-      });
-      setState(() {
         if (e.toString().contains(NoNameEnteredError)) {
-          _errorMessage = "$_errorMessage\n이름을 입력해주세요.";
+          _errorMessage = "$_errorMessage\n사용자 이름을 입력해주세요.";
         } else if (e.toString().contains(NoUsernameEnteredError)) {
           _errorMessage = "$_errorMessage\n아이디를 입력해주세요.";
         } else if (e.toString().contains(NoPasswordEnteredError)) {
