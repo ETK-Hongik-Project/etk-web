@@ -82,6 +82,7 @@ class CommunityMainPage extends StatelessWidget {
                               fetchPosts: fetchAllPosts,
                               postCreationButton: PostCreationButton(
                                   boardId: snapshot.data![index].boardId),
+                              searchController: TextEditingController(),
                             ),
                           ),
                         ],
