@@ -57,3 +57,33 @@ Future<User> fetchUserDetails(BuildContext context) async {
     throw Exception('Failed to load user');
   }
 }
+
+Future<void> join(
+    String name, String username, String password, String email) async {
+  final response = await http.post(
+    Uri.parse('http://$ip:8080/api/v1/join'),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      "name": name,
+      "username": username,
+      "password": password,
+      "email": email,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    // 회원가입 성공
+  } else if (response.statusCode == 400) {
+    String responseBody = utf8.decode(response.bodyBytes);
+    Map<String, dynamic> jsonResponse = json.decode(responseBody);
+    var error = jsonResponse["message"];
+
+    logger.e("Failed to create an account ($error)");
+    throw Exception("$error");
+  } else {
+    logger.e('Failed to create an account : ${response.statusCode}');
+    throw Exception('Failed to create an account');
+  }
+}
