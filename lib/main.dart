@@ -3,7 +3,7 @@ import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'utils/regression.dart';
 import 'widgets/keyboard/keyboard_main_page.dart';
 
 var logger = Logger();
@@ -30,6 +30,11 @@ void main() async {
   if (frontCamera == null) {
     throw Exception('전면 카메라를 찾을 수 없습니다.');
   }
+
+  // TODO: 지워야함. 테스트용
+  RegressionModel model = RegressionModel();
+  List<double> results = await model.runModel('test_image.jpg');
+  print("Regression results: $results");
 
   runApp(const MyApp());
 }
