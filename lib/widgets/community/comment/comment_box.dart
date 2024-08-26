@@ -43,7 +43,13 @@ class _CommentBoxState extends State<CommentBox> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('댓글 삭제'),
+          title: const Text(
+            '댓글 삭제',
+            style: TextStyle(
+              color: Colors.deepPurpleAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: const Text('정말로 삭제하시겠습니까?'),
           actions: <Widget>[
             TextButton(
@@ -107,14 +113,31 @@ class _CommentBoxState extends State<CommentBox> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('오류'),
+          title: const Text(
+            '오류',
+            style: TextStyle(
+              color: Colors.deepPurpleAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: Text(message),
           actions: <Widget>[
-            TextButton(
-              child: const Text('확인'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.deepPurpleAccent,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: TextButton(
+                child: const Text(
+                  '확인',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
             ),
           ],
         );

@@ -45,11 +45,20 @@ class _FileListScreenState extends State<FileListScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('삭제 확인'),
+              title: const Text(
+                '삭제 확인',
+                style: TextStyle(
+                  color: Colors.deepPurpleAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               content: Text('${_selectedFiles.length}개의 대화 내역을 삭제하시겠습니까?'),
               actions: <Widget>[
                 TextButton(
-                  child: const Text('삭제'),
+                  child: const Text('삭제',
+                      style: TextStyle(
+                        color: Colors.deepPurpleAccent,
+                      )),
                   onPressed: () {
                     Navigator.of(context).pop(true);
                   },
@@ -187,11 +196,36 @@ class _FileListScreenState extends State<FileListScreen> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('대화 내용'),
-                    content: Text(contents),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    backgroundColor: Colors.white,
+                    title: const Text(
+                      '대화 내용',
+                      style: TextStyle(
+                        color: Colors.deepPurpleAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    content: SingleChildScrollView(
+                      child: Text(
+                        contents,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.deepPurpleAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
                         child: const Text('확인'),
                       ),
                     ],
