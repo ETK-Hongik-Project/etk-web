@@ -71,3 +71,4 @@ doc/api/
 pubspec.lock
 android/local.properties
 ios/Runner/GeneratedPluginRegistrant.h
+/macos/Flutter/ephemeral
