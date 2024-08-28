@@ -49,7 +49,7 @@ public class RegressionActivity {
             // TODO: 이미지 가져오고 오픈하고 방법 설정?
             bitmap = BitmapFactory.decodeStream(flutterActivity.getAssets().open("00000.jpg"));
             bitmap = Bitmap.createScaledBitmap(bitmap, 112, 112, true);
-            module = Module.load(MainActivity.assetFilePath(this.flutterActivity, "xnnpack_model.pte"));
+            module = Module.load(MainActivity.assetFilePath(this.flutterActivity, "xnnpack_classification_model.pte"));
         } catch (IOException e) {
             Log.e("PytorchHelloWorld", "Error reading assets", e);
             flutterActivity.finish();
