@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.io.IOException;
+import java.io.File;
 import org.pytorch.executorch.EValue;
 import org.pytorch.executorch.Module;
 import org.pytorch.executorch.Tensor;
@@ -47,7 +48,8 @@ public class RegressionActivity {
         Module module = null;
         try {
             // TODO: 이미지 가져오고 오픈하고 방법 설정?
-            bitmap = BitmapFactory.decodeStream(flutterActivity.getAssets().open("00000.jpg"));
+            File imgFile = new File(imgPath);
+            bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             bitmap = Bitmap.createScaledBitmap(bitmap, 112, 112, true);
             module = Module.load(MainActivity.assetFilePath(this.flutterActivity, "xnnpack_classification_model.pte"));
         } catch (IOException e) {
