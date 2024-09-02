@@ -1,15 +1,14 @@
 import 'dart:io'; //
-import 'dart:collection'; // Map<int, int>
+
 import 'package:camera/camera.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'utils/classification.dart';
 import 'widgets/keyboard/keyboard_main_page.dart';
-import 'package:path_provider/path_provider.dart';
-
 
 var logger = Logger();
 CameraDescription? frontCamera;
@@ -35,28 +34,6 @@ void main() async {
   if (frontCamera == null) {
     throw Exception('전면 카메라를 찾을 수 없습니다.');
   }
-
-  // TODO: 지워야함. 테스트용
-  final tmpDir = await getTemporaryDirectory();
-  List<FileSystemEntity>  files = tmpDir.listSync();
-  ClassificationModel model = ClassificationModel();
-  Map<int, int> frequencyMap = {-1:0, 0:0, 1:0, 2:0, 3:0, 4:0};
-  for (var entity in files) {
-    if (entity is File) {
-      final result = await model.runModel(entity.path);
-      frequencyMap[result] = frequencyMap[result]! + 1;
-    }
-  }
-  int mostFrequentElem = -1;
-  int maxFrequency = 0;
-  frequencyMap.forEach((key, value){
-    if(value > maxFrequency){
-      maxFrequency = value;
-      mostFrequentElem = key;
-    }
-  });
-
-  print("Classification Result: $mostFrequentElem");
 
   runApp(const MyApp());
 }
