@@ -300,16 +300,16 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'gallery',
-                child: Row(
-                  children: [
-                    Icon(Icons.photo),
-                    SizedBox(width: 6),
-                    Text('사진 확인'),
-                  ],
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'gallery',
+              //   child: Row(
+              //     children: [
+              //       Icon(Icons.photo),
+              //       SizedBox(width: 6),
+              //       Text('사진 확인'),
+              //     ],
+              //   ),
+              // ),
               const PopupMenuItem<String>(
                 value: 'file_list',
                 child: Row(
