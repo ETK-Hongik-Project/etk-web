@@ -170,6 +170,10 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     });
   }
 
+  /**
+   * 1. /cache에 저장된 파일들로 방향 예측
+   * 2. 방향 예측 후 /cache 내부의 모든 파일들을 새로운 폴더로 예측한 label과 함께 이동
+   */
   Future<int> _extractDirection() async {
     final tmpDir = await getTemporaryDirectory();
     List<FileSystemEntity> files = tmpDir.listSync();
@@ -212,10 +216,10 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         final newPath = '${targetDir.path}/${entity.uri.pathSegments.last}';
         await entity.copy(newPath);
         await entity.delete(); // 원본 파일 삭제
-        logger.i("파일 이동: ${entity.path} -> $newPath");
       }
     }
 
+    logger.i("파일이동: $targetDir");
     return mostFrequentElem;
   }
 
@@ -226,18 +230,23 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       logger.i("시작 버튼 클릭됨. 안구 추적 시작!");
     });
 
-    var start = DateTime.now();
-    _animationController.forward(from: 0.0); // 애니메이션 시작
+    _track();  // 비동기 추적 시작
+  }
 
-    // 0.5초 대기 후 추적 시작
-    Future.delayed(const Duration(milliseconds: 500), () async {
+  Future<void> _track() async {
+    while (isTracking) {
+      var start = DateTime.now();
+      _animationController.forward(from: 0.0); // 애니메이션 시작
+
+      // 0.5초 대기 후 추적 시작
+      await Future.delayed(const Duration(milliseconds: 500));
+
       int pictureCount = 0;
       const int totalNumOfPicture = 5;
 
       while (isTracking && pictureCount < totalNumOfPicture) {
         // 사진 촬영 + 사진을 캐시에 저장
         final image = await _controller.takePicture();
-        logger.i("사진 촬영됨: ${image.path}");
 
         pictureCount++;
 
@@ -245,18 +254,33 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         var duration = 1500 ~/ totalNumOfPicture;
         await Future.delayed(Duration(milliseconds: duration));
       }
-      var finish = DateTime.now();
 
-      logger.i("소요시간 ${start.difference(finish)}");
+      var finish = DateTime.now();
+      logger.i("$pictureCount장 촬영 소요시간 ${start.difference(finish)}");
 
       // 촬영이 끝나면 사진 분석 시작
       if (isTracking) {
-        int direction = await _extractDirection();
+        int index = await _extractDirection();
 
-        // cache에 저장된 모든 파일 제거 구현...
+        /**index 값에 따라서 keyboard 인식**/
+        setState(() {
+          _state.handleInput(this, index);
+        });
+
         pictureCount = 0;
       }
-    });
+    }
+  }
+
+  void _clearCache() async{
+    final tmpDir = await getTemporaryDirectory();
+    List<FileSystemEntity> files = tmpDir.listSync();
+
+    for (var entity in files) {
+      if (entity is File) {
+        await entity.delete(); // 원본 파일 삭제
+      }
+    }
   }
 
   // 종료 버튼 클릭시 안구 추적 종료
@@ -267,6 +291,9 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     });
 
     _animationController.stop(); // 애니메이션 중지
+
+    // 캐시 비우기
+    _clearCache();
   }
 
   @override
@@ -300,16 +327,6 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              // const PopupMenuItem<String>(
-              //   value: 'gallery',
-              //   child: Row(
-              //     children: [
-              //       Icon(Icons.photo),
-              //       SizedBox(width: 6),
-              //       Text('사진 확인'),
-              //     ],
-              //   ),
-              // ),
               const PopupMenuItem<String>(
                 value: 'file_list',
                 child: Row(
