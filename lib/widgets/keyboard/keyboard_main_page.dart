@@ -42,6 +42,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   String _displayText = '';
   bool isTracking = false;
   late AnimationController _animationController;
+  int _currentImageDirIndex = 0;
 
   final List<String> selectionPage = ['자음', '모음'];
 
@@ -200,7 +201,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
     // Direction 값을 저장할 디렉터리 경로 설정
     final directory = await getApplicationDocumentsDirectory();
-    final targetDir = Directory('${directory.path}/image_${DateTime.now()}');
+    final targetDir = Directory('${directory.path}/image_${_currentImageDirIndex++}');
 
     if (!(await targetDir.exists())) {
       await targetDir.create(recursive: true);
