@@ -35,7 +35,21 @@ void main() async {
     throw Exception('전면 카메라를 찾을 수 없습니다.');
   }
 
+  // 앱 시작시 캐시에 남아있는 사진들 제거
+  _clearCache();
+
   runApp(const MyApp());
+}
+
+void _clearCache() async{
+  final tmpDir = await getTemporaryDirectory();
+  List<FileSystemEntity> files = tmpDir.listSync();
+
+  for (var entity in files) {
+    if (entity is File) {
+      await entity.delete(); // 원본 파일 삭제
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
