@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/main.dart';
+import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
 import 'package:etk_web/widgets/image/gallery_screen.dart';
 import 'package:etk_web/widgets/keyboard/file_list_screen.dart';
@@ -169,6 +170,55 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     });
   }
 
+  Future<int> _extractDirection() async {
+    final tmpDir = await getTemporaryDirectory();
+    List<FileSystemEntity> files = tmpDir.listSync();
+    ClassificationModel model = ClassificationModel();
+    Map<int, int> frequencyMap = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0};
+
+    for (var entity in files) {
+      if (entity is File) {
+        final result = await model.runModel(entity.path);
+        frequencyMap[result] = frequencyMap[result]! + 1;
+      }
+    }
+
+    int mostFrequentElem = -1;
+    int maxFrequency = 0;
+    frequencyMap.forEach((key, value) {
+      if (value > maxFrequency) {
+        maxFrequency = value;
+        mostFrequentElem = key;
+      }
+    });
+
+    logger.i("Classification Result: $mostFrequentElem");
+
+    // Direction 값을 저장할 디렉터리 경로 설정
+    final directory = await getApplicationDocumentsDirectory();
+    final targetDir = Directory('${directory.path}/image_${DateTime.now()}');
+
+    if (!(await targetDir.exists())) {
+      await targetDir.create(recursive: true);
+    }
+
+    // label.txt에 모델이 예측한 방향을 적어서 저장
+    final labelFile = File('${targetDir.path}/label.txt');
+    await labelFile.writeAsString('$mostFrequentElem');
+
+    // tmpDir의 파일을 targetDir로 이동
+    for (var entity in files) {
+      if (entity is File) {
+        final newPath = '${targetDir.path}/${entity.uri.pathSegments.last}';
+        await entity.copy(newPath);
+        await entity.delete(); // 원본 파일 삭제
+        logger.i("파일 이동: ${entity.path} -> $newPath");
+      }
+    }
+
+    return mostFrequentElem;
+  }
+
   // 시작 버튼 클릭시 안구 추적 시작
   void startTracking() {
     setState(() {
@@ -199,20 +249,13 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
       logger.i("소요시간 ${start.difference(finish)}");
 
-      // // 촬영이 끝나면 사진 분석 시작
-      // if (isTracking) {
-      //   for (int i = 0; i < frameCount; i++) {
-      //     final String path =
-      //         '${(await getTemporaryDirectory()).path}/frame_$i.jpg';
-      //     String direction = await _analyzeImage(path);
-      //     logger.i("시선 방향: $direction");
-      //     _handleDirection(direction);
-      //   }
-      //
-      // // picture count reset -> 촬영 반복
-      // pictureCount = 0;
-      //
-      // }
+      // 촬영이 끝나면 사진 분석 시작
+      if (isTracking) {
+        int direction = await _extractDirection();
+
+        // cache에 저장된 모든 파일 제거 구현...
+        pictureCount = 0;
+      }
     });
   }
 
@@ -257,16 +300,16 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'gallery',
-                child: Row(
-                  children: [
-                    Icon(Icons.photo),
-                    SizedBox(width: 6),
-                    Text('사진 확인'),
-                  ],
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'gallery',
+              //   child: Row(
+              //     children: [
+              //       Icon(Icons.photo),
+              //       SizedBox(width: 6),
+              //       Text('사진 확인'),
+              //     ],
+              //   ),
+              // ),
               const PopupMenuItem<String>(
                 value: 'file_list',
                 child: Row(

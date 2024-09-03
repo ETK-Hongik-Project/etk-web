@@ -22,7 +22,11 @@ class CameraPreviewWidget extends StatelessWidget {
             child: SizedBox(
               width: 100,
               height: 150,
-              child: CameraPreview(controller),
+              child: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..scale(-1.0, 1.0), // 좌우 반전 적용
+                child: CameraPreview(controller),
+              ),
             ),
           );
         } else {
