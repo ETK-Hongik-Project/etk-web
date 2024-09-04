@@ -171,10 +171,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     });
   }
 
-  /**
-   * 1. /cache에 저장된 파일들로 방향 예측
-   * 2. 방향 예측 후 /cache 내부의 모든 파일들을 새로운 폴더로 예측한 label과 함께 이동
-   */
+  /// 1. /cache에 저장된 파일들로 방향 예측
+  /// 2. 방향 예측 후 /cache 내부의 모든 파일들을 새로운 폴더로 예측한 label과 함께 이동
   Future<int> _extractDirection() async {
     final tmpDir = await getTemporaryDirectory();
     List<FileSystemEntity> files = tmpDir.listSync();
@@ -201,7 +199,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
     // Direction 값을 저장할 디렉터리 경로 설정
     final directory = await getApplicationDocumentsDirectory();
-    final targetDir = Directory('${directory.path}/image_${_currentImageDirIndex++}');
+    final targetDir =
+        Directory('${directory.path}/image_${_currentImageDirIndex++}');
 
     if (!(await targetDir.exists())) {
       await targetDir.create(recursive: true);
@@ -231,7 +230,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       logger.i("시작 버튼 클릭됨. 안구 추적 시작!");
     });
 
-    _track();  // 비동기 추적 시작
+    _track(); // 비동기 추적 시작
   }
 
   Future<void> _track() async {
@@ -273,7 +272,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     }
   }
 
-  void _clearCache() async{
+  void _clearCache() async {
     final tmpDir = await getTemporaryDirectory();
     List<FileSystemEntity> files = tmpDir.listSync();
 
