@@ -8,7 +8,7 @@ import 'package:etk_web/widgets/community/community_main_page.dart';
 import 'package:etk_web/widgets/keyboard/file_list_screen.dart';
 import 'package:etk_web/widgets/keyboard/start_button.dart';
 import 'package:etk_web/widgets/keyboard/stop_button.dart';
-import 'package:etk_web/widgets/upload_page.dart';
+import 'package:etk_web/widgets/image/upload_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';

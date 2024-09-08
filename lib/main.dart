@@ -16,7 +16,7 @@ const String local_ip = "10.0.2.2";
 // ignore: constant_identifier_names
 const String dev_ip = "43.202.147.116";
 
-String ip = local_ip;
+String ip = dev_ip;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
