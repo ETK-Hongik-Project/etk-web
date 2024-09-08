@@ -7,7 +7,6 @@ import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'utils/classification.dart';
 import 'widgets/keyboard/keyboard_main_page.dart';
 
 var logger = Logger();
@@ -17,7 +16,7 @@ const String local_ip = "10.0.2.2";
 // ignore: constant_identifier_names
 const String dev_ip = "43.202.147.116";
 
-String ip = dev_ip;
+String ip = local_ip;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +56,7 @@ Future<void> _clearCache() async {
   final imageDir = Directory('${appDir.path}/image');
 
   if (await imageDir.exists()) {
-    await _deleteDirectory(imageDir);  // 폴더 내부 파일 및 서브 폴더까지 모두 삭제
+    await _deleteDirectory(imageDir); // 폴더 내부 파일 및 서브 폴더까지 모두 삭제
   }
 }
 
