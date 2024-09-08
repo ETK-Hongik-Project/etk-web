@@ -35,19 +35,40 @@ void main() async {
     throw Exception('전면 카메라를 찾을 수 없습니다.');
   }
 
-  // 앱 시작시 캐시에 남아있는 사진들 제거
+  // 앱 시작시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
   _clearCache();
 
   runApp(const MyApp());
 }
 
-void _clearCache() async{
+Future<void> _clearCache() async {
+  // 캐시 디렉토리의 파일들 삭제
   final tmpDir = await getTemporaryDirectory();
-  List<FileSystemEntity> files = tmpDir.listSync();
+  List<FileSystemEntity> tmpFiles = tmpDir.listSync();
 
-  for (var entity in files) {
+  for (var entity in tmpFiles) {
     if (entity is File) {
-      await entity.delete(); // 원본 파일 삭제
+      await entity.delete(); // 파일 삭제
+    }
+  }
+
+  // /data/data/com.example.etk_web/app_flutter/image 폴더 삭제
+  final appDir = await getApplicationDocumentsDirectory();
+  final imageDir = Directory('${appDir.path}/image');
+
+  if (await imageDir.exists()) {
+    await _deleteDirectory(imageDir);  // 폴더 내부 파일 및 서브 폴더까지 모두 삭제
+  }
+}
+
+// 폴더 내부의 파일들과 서브 디렉토리까지 모두 재귀적으로 삭제하는 함수
+Future<void> _deleteDirectory(Directory dir) async {
+  if (await dir.exists()) {
+    try {
+      // 파일 및 서브 디렉토리 모두 삭제
+      dir.deleteSync(recursive: true);
+    } catch (e) {
+      logger.e("Error deleting directory: $e");
     }
   }
 }
