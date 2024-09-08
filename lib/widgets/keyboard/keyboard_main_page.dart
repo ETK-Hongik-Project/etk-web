@@ -19,6 +19,8 @@ import 'bottom_text_field.dart';
 import 'camera_preview_widget.dart';
 import 'center_content.dart';
 
+int undoCount = 0;  // undo 횟수. 글자가 선택되면 다시 0으로 초기화
+
 class KeyboardMainPage extends StatefulWidget {
   final CameraDescription camera = frontCamera!;
 
@@ -171,60 +173,9 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     });
   }
 
-  /// 1. /cache에 저장된 파일들로 방향 예측
-  /// 2. 방향 예측 후 /cache 내부의 모든 파일들을 새로운 폴더로 예측한 label과 함께 이동
-  Future<int> _extractDirection() async {
-    final tmpDir = await getTemporaryDirectory();
-    List<FileSystemEntity> files = tmpDir.listSync();
-    ClassificationModel model = ClassificationModel();
-    Map<int, int> frequencyMap = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0};
-
-    for (var entity in files) {
-      if (entity is File) {
-        final result = await model.runModel(entity.path);
-        frequencyMap[result] = frequencyMap[result]! + 1;
-      }
-    }
-
-    int mostFrequentElem = -1;
-    int maxFrequency = 0;
-    frequencyMap.forEach((key, value) {
-      if (value > maxFrequency) {
-        maxFrequency = value;
-        mostFrequentElem = key;
-      }
-    });
-
-    logger.i("Classification Result: $mostFrequentElem");
-
-    // Direction 값을 저장할 디렉터리 경로 설정
-    final directory = await getApplicationDocumentsDirectory();
-    final targetDir =
-        Directory('${directory.path}/image_${_currentImageDirIndex++}');
-
-    if (!(await targetDir.exists())) {
-      await targetDir.create(recursive: true);
-    }
-
-    // label.txt에 모델이 예측한 방향을 적어서 저장
-    final labelFile = File('${targetDir.path}/label.txt');
-    await labelFile.writeAsString('$mostFrequentElem');
-
-    // tmpDir의 파일을 targetDir로 이동
-    for (var entity in files) {
-      if (entity is File) {
-        final newPath = '${targetDir.path}/${entity.uri.pathSegments.last}';
-        await entity.copy(newPath);
-        await entity.delete(); // 원본 파일 삭제
-      }
-    }
-
-    logger.i("파일이동: $targetDir");
-    return mostFrequentElem;
-  }
-
+  bool _isTrackingInProgress = false; // Add a flag to monitor the state of tracking
   // 시작 버튼 클릭시 안구 추적 시작
-  void startTracking() {
+  void startTracking() async {
     setState(() {
       isTracking = true;
       logger.i("시작 버튼 클릭됨. 안구 추적 시작!");
@@ -234,6 +185,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   }
 
   Future<void> _track() async {
+    _isTrackingInProgress = true;
+
     while (isTracking) {
       var start = DateTime.now();
       _animationController.forward(from: 0.0); // 애니메이션 시작
@@ -243,6 +196,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
       int pictureCount = 0;
       const int totalNumOfPicture = 5;
+      
+      
 
       while (isTracking && pictureCount < totalNumOfPicture) {
         // 사진 촬영 + 사진을 캐시에 저장
@@ -267,8 +222,107 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
           _state.handleInput(this, index);
         });
 
+        _createUpdateImage(index);
+        
+        undoCount = 0; // 글자를 선택했으므로 undoCount 초기화
         pictureCount = 0;
       }
+    }
+
+    _isTrackingInProgress = false;
+  }
+
+  /// 1. /cache에 저장된 파일들로 방향 예측
+  /// 2. 방향 예측 후 /cache 내부의 모든 파일들을 새로운 폴더로 예측한 label과 함께 이동
+  Future<int> _extractDirection() async {
+    final tmpDir = await getTemporaryDirectory();
+    List<FileSystemEntity> files = tmpDir.listSync();
+    ClassificationModel model = ClassificationModel();
+    Map<int, int> frequencyMap = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0};
+
+    for (var entity in files) {
+      if (entity is File) {
+        final result = await model.runModel(entity.path);
+        frequencyMap[result] = frequencyMap[result]! + 1;
+      }
+    }
+
+    int label = -1;
+    int maxFrequency = 0;
+    frequencyMap.forEach((key, value) {
+      if (value > maxFrequency) {
+        maxFrequency = value;
+        label = key;
+      }
+    });
+
+    logger.i("Classification Result: $label");
+
+    // Direction 값을 저장할 디렉터리 경로 설정
+    final directory = await getApplicationDocumentsDirectory();
+    final targetDir =
+        Directory('${directory.path}/image/image_${_currentImageDirIndex++}');
+
+    if (!(await targetDir.exists())) {
+      await targetDir.create(recursive: true);
+    }
+
+    // label.txt에 모델이 예측한 방향을 적어서 저장
+    final labelFile = File('${targetDir.path}/label.txt');
+    await labelFile.writeAsString('$label');
+
+    // tmpDir의 파일을 targetDir로 이동
+    for (var entity in files) {
+      if (entity is File) {
+        final newPath = '${targetDir.path}/${entity.uri.pathSegments.last}';
+        await entity.copy(newPath);
+        await entity.delete(); // 원본 파일 삭제
+      }
+    }
+
+    logger.i("파일이동: $targetDir");
+    return label;
+  }
+
+  /**
+   * undoCount가 1인 경우 undo한 파일을 새로 선택된 label과 함께 update_image 폴더로 복사
+   */
+  Future<void> _createUpdateImage(int label) async{
+    if(undoCount != 1){
+      return;
+    }
+
+    final directory = await getApplicationDocumentsDirectory();
+    final sourceDir = Directory('${directory.path}/image/image_${_currentImageDirIndex-2}');  // undo한 단어의 이미지 directory
+    final targetDir = Directory('${directory.path}/update_image');  // 서버로 전송할 이미지 directory
+
+    if (!(await targetDir.exists())) {
+      await targetDir.create(recursive: true);
+    }
+
+    // Check if the sourceDir exists and contains .jpg files
+    if (await sourceDir.exists()) {
+      // List all files in sourceDir
+      final List<FileSystemEntity> files = sourceDir.listSync();
+
+      for (var file in files) {
+        if (file is File && file.path.endsWith('.jpg')) {
+          // Extract the original filename without extension
+          final filename = file.uri.pathSegments.last.split('.').first;
+
+          // Construct new filename by appending '_label'
+          final newFilename = '${filename}_$label.jpg';
+
+          // Move the file to target directory with the new filename
+          final newFile = File('${targetDir.path}/$newFilename');
+
+          // Move the file to the target directory (or you can copy if needed)
+          await file.rename(newFile.path);
+        }
+      }
+      logger.d("[가중치 업데이트] $sourceDir의 파일을 $targetDir로 이동");
+    } else {
+      logger.e('Source directory does not exist: $sourceDir');
     }
   }
 
@@ -284,11 +338,16 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   }
 
   // 종료 버튼 클릭시 안구 추적 종료
-  void stopTracking() {
+  void stopTracking() async{
     setState(() {
       isTracking = false;
       logger.i("종료 버튼 클릭됨. 안구 추적 종료!");
     });
+
+    // 안구 추적이 완전히 종료되었을 때까지 기다림
+    while (_isTrackingInProgress) {
+      await Future.delayed(const Duration(milliseconds: 100)); // Polling
+    }
 
     _animationController.stop(); // 애니메이션 중지
 
@@ -375,6 +434,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                     labels: _currentLabels,
                     onButtonPressed: (index) {
                       _state.handleInput(this, index);
+                      _createUpdateImage(index);
                     },
                   ),
                   Align(

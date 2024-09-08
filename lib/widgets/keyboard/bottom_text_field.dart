@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:etk_web/keyboard_states.dart';
+import 'package:etk_web/widgets/keyboard/keyboard_main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -105,6 +106,7 @@ class BottomTextField extends StatelessWidget {
                         "'${textController.text.substring(textController.text.length - 1)}' 제거",
                       );
                       textController.text = hangulInput.text;
+                      undoCount++;
                     }
                   },
                 ),
