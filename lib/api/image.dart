@@ -8,7 +8,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart';
 
-// 참고: 이미지 파일 전송시 image 폴더의 label 값을 이미지 이름의 끝에 붙여 전송하기!!
 Future<void> uploadImage(BuildContext context, List<File> imageFiles) async {
   final accessToken = await getAccessToken();
 
