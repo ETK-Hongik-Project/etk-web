@@ -5,10 +5,10 @@ import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/main.dart';
 import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
-import 'package:etk_web/widgets/image/gallery_screen.dart';
 import 'package:etk_web/widgets/keyboard/file_list_screen.dart';
 import 'package:etk_web/widgets/keyboard/start_button.dart';
 import 'package:etk_web/widgets/keyboard/stop_button.dart';
+import 'package:etk_web/widgets/upload_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,7 +19,7 @@ import 'bottom_text_field.dart';
 import 'camera_preview_widget.dart';
 import 'center_content.dart';
 
-int undoCount = 0;  // undo 횟수. 글자가 선택되면 다시 0으로 초기화
+int undoCount = 0; // undo 횟수. 글자가 선택되면 다시 0으로 초기화
 
 class KeyboardMainPage extends StatefulWidget {
   final CameraDescription camera = frontCamera!;
@@ -173,7 +173,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     });
   }
 
-  bool _isTrackingInProgress = false; // Add a flag to monitor the state of tracking
+  bool _isTrackingInProgress =
+      false; // Add a flag to monitor the state of tracking
   // 시작 버튼 클릭시 안구 추적 시작
   void startTracking() async {
     setState(() {
@@ -196,8 +197,6 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
       int pictureCount = 0;
       const int totalNumOfPicture = 5;
-      
-      
 
       while (isTracking && pictureCount < totalNumOfPicture) {
         // 사진 촬영 + 사진을 캐시에 저장
@@ -223,7 +222,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         });
 
         _createUpdateImage(index);
-        
+
         undoCount = 0; // 글자를 선택했으므로 undoCount 초기화
         pictureCount = 0;
       }
@@ -284,17 +283,17 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     return label;
   }
 
-  /**
-   * undoCount가 1인 경우 undo한 파일을 새로 선택된 label과 함께 update_image 폴더로 복사
-   */
-  Future<void> _createUpdateImage(int label) async{
-    if(undoCount != 1){
+  /// undoCount가 1인 경우 undo한 파일을 새로 선택된 label과 함께 update_image 폴더로 복사
+  Future<void> _createUpdateImage(int label) async {
+    if (undoCount != 1) {
       return;
     }
 
     final directory = await getApplicationDocumentsDirectory();
-    final sourceDir = Directory('${directory.path}/image/image_${_currentImageDirIndex-2}');  // undo한 단어의 이미지 directory
-    final targetDir = Directory('${directory.path}/update_image');  // 서버로 전송할 이미지 directory
+    final sourceDir = Directory(
+        '${directory.path}/image/image_${_currentImageDirIndex - 2}'); // undo한 단어의 이미지 directory
+    final targetDir =
+        Directory('${directory.path}/update_image'); // 서버로 전송할 이미지 directory
 
     if (!(await targetDir.exists())) {
       await targetDir.create(recursive: true);
@@ -338,7 +337,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   }
 
   // 종료 버튼 클릭시 안구 추적 종료
-  void stopTracking() async{
+  void stopTracking() async {
     setState(() {
       isTracking = false;
       logger.i("종료 버튼 클릭됨. 안구 추적 종료!");
@@ -386,6 +385,16 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'gallery',
+                child: Row(
+                  children: [
+                    Icon(Icons.photo),
+                    SizedBox(width: 6),
+                    Text('사진 전송'),
+                  ],
+                ),
+              ),
               const PopupMenuItem<String>(
                 value: 'file_list',
                 child: Row(
@@ -472,12 +481,10 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   }
 
   void _navigateToGalleryScreen(BuildContext context) async {
-    final directory = await getTemporaryDirectory();
-    final files = directory.listSync().whereType<File>().toList();
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GalleryScreen(imageFiles: files),
+        builder: (context) => const UploadPage(),
       ),
     );
   }
