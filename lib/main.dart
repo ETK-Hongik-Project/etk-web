@@ -7,7 +7,9 @@ import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api/image.dart';
 import 'widgets/keyboard/keyboard_main_page.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 var logger = Logger();
 CameraDescription? frontCamera;
@@ -38,6 +40,13 @@ void main() async {
   _clearCache();
 
   runApp(const MyApp());
+
+  // 정각마다 가중치 업데이트
+  await AndroidAlarmManager.initialize();
+  final now = DateTime.now();
+  final midNight = DateTime(now.year, now.month, now.day, 15, 25, 0);
+  AndroidAlarmManager.oneShotAt(
+      midNight, 0, uploadImage, exact: true, wakeup: true);
 }
 
 Future<void> _clearCache() async {
