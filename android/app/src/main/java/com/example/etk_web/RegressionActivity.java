@@ -23,35 +23,32 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 
 public class RegressionActivity {
     private FlutterActivity flutterActivity;
+    private Module module = null;
 
     public RegressionActivity(FlutterActivity flutterActivity){
         this.flutterActivity = flutterActivity;
     }
 
-    private void populateBitmap(String file){
-        Bitmap bitmap = null;
+    public void updateModel(String modelPath){
         try {
-            bitmap = BitmapFactory.decodeStream(flutterActivity.getAssets().open(file));
-            bitmap = Bitmap.createScaledBitmap(bitmap, 299, 299, true);
-        } catch (IOException e) {
-            Log.e("Regression", "Error reading assets", e);
+            Log.d("Model Update", "Model Update With "+modelPath);
+            module = Module.load(modelPath);
+        } catch (Exception e) {
+            Log.e("PytorchHelloWorld", "Error Update Model", e);
             flutterActivity.finish();
         }
-
-        // showing image on UI
-//        ImageView imageView = findViewById(R.id.image);
-//        imageView.setImageBitmap(bitmap);
     }
 
     public float[] runModel(String imgPath) {
         Bitmap bitmap = null;
-        Module module = null;
         try {
             // TODO: 이미지 가져오고 오픈하고 방법 설정?
             File imgFile = new File(imgPath);
             bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             bitmap = Bitmap.createScaledBitmap(bitmap, 112, 112, true);
-            module = Module.load(MainActivity.assetFilePath(this.flutterActivity, "xnnpack_classification_model.pte"));
+            if(module == null) {
+                module = Module.load(MainActivity.assetFilePath(this.flutterActivity, "xnnpack_classification_model.pte"));
+            }
         } catch (IOException e) {
             Log.e("PytorchHelloWorld", "Error reading assets", e);
             flutterActivity.finish();
@@ -67,10 +64,6 @@ public class RegressionActivity {
         // running the model(회귀 결과)
         final Tensor outputTensor = module.forward(EValue.from(inputTensor))[0].toTensor();
 
-        // getting tensor content as java array of floats
-        // coordinate of (x,y)
-        // for example if x > 0 && y > 0 --> upleft
-        // TODO: 가운데 마진을 정해야겟다
         final float[] scores = outputTensor.getDataAsFloatArray();
 
         return scores;

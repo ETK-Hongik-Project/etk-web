@@ -1,15 +1,14 @@
 import 'dart:io'; //
 
 import 'package:camera/camera.dart';
+import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'api/image.dart';
 import 'widgets/keyboard/keyboard_main_page.dart';
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 var logger = Logger();
 CameraDescription? frontCamera;
@@ -20,6 +19,7 @@ const String dev_ip = "43.202.147.116";
 
 String ip = dev_ip;
 
+ClassificationModel model = ClassificationModel();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final cameras = await availableCameras();
@@ -39,14 +39,24 @@ void main() async {
   // 앱 시작시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
   _clearCache();
 
-  runApp(const MyApp());
+  // How to Update
+  final fileDir = await getApplicationSupportDirectory();
+  print("TMPDIR PATH");
+  print(fileDir.path);
 
-  // 정각마다 가중치 업데이트
-  await AndroidAlarmManager.initialize();
-  final now = DateTime.now();
-  final midNight = DateTime(now.year, now.month, now.day, 15, 25, 0);
-  AndroidAlarmManager.oneShotAt(
-      midNight, 0, uploadImage, exact: true, wakeup: true);
+  final modelPath = "${fileDir.path}/xnnpack_classification_model.pte";
+
+  // Check if the model file exists
+  final modelFile = File(modelPath);
+
+  if (await modelFile.exists()) {
+    logger.i("update model");
+    model.updateModel(modelPath);
+  } else {
+    logger.w("Model update unavailable: The file does not exist.");
+  }
+
+  runApp(const MyApp());
 }
 
 Future<void> _clearCache() async {

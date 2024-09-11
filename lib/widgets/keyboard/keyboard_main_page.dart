@@ -3,12 +3,11 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/main.dart';
-import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
+import 'package:etk_web/widgets/image/upload_page.dart';
 import 'package:etk_web/widgets/keyboard/file_list_screen.dart';
 import 'package:etk_web/widgets/keyboard/start_button.dart';
 import 'package:etk_web/widgets/keyboard/stop_button.dart';
-import 'package:etk_web/widgets/image/upload_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
@@ -236,7 +235,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   Future<int> _extractDirection() async {
     final tmpDir = await getTemporaryDirectory();
     List<FileSystemEntity> files = tmpDir.listSync();
-    ClassificationModel model = ClassificationModel();
+
     Map<int, int> frequencyMap = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0};
 
     for (var entity in files) {

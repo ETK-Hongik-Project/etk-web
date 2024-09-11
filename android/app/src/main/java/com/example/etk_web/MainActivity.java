@@ -20,11 +20,17 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 public class MainActivity extends FlutterActivity{
     // Flutter에서 열어야 하는 채널 이름
     private static final String CHANNEL = "com.model.prediction/predict";
+    private RegressionActivity regressionActivity = null;
     private MethodChannel.MethodCallHandler handler = (call, result) -> {
         // TODO:
+        if(regressionActivity == null){
+            regressionActivity = new RegressionActivity(this);
+        }
         if(call.method.equals("runModel")){
             String imagePath = call.argument("imagePath");
-            float[] scores = new RegressionActivity(this).runModel(imagePath);
+
+            // TODO:
+            float[] scores = regressionActivity.runModel(imagePath);
             if(scores != null){
                 List<Double> resultList = new ArrayList<>();
                 for(float score : scores){
@@ -34,6 +40,9 @@ public class MainActivity extends FlutterActivity{
             } else {
                 result.error("UNAVAILABLE", "Model Execution Failed.", null);
             }
+        } else if(call.method.equals("updateModel")){
+            String modelPath = call.argument("modelPath");
+            regressionActivity.updateModel(modelPath);
         } else {
             result.notImplemented();
         }
