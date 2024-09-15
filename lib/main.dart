@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -131,5 +132,49 @@ class MyApp extends StatelessWidget {
   Future<bool> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('accessToken') != null;
+  }
+
+  Future<bool> _checkAndValidateLoginStatus(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('accessToken');
+
+    // 만약 accessToken이 없다면 false 반환
+    if (accessToken == null) {
+      return false;
+    }
+
+    // accessToken의 유효성 검증
+    final response = await _validateToken(accessToken);
+
+    // 토큰이 유효하지 않으면 false 반환하고 로그인 페이지로 이동
+    if (response.statusCode == 401) {
+      await _handleInvalidToken(context);
+      return false;
+    }
+
+    // 토큰이 유효하면 true 반환
+    return true;
+  }
+
+  Future<http.Response> _validateToken(String accessToken) async {
+    // 토큰 검증을 위한 API 요청 (유효한지 확인하는 API를 호출해야 함)
+    return await http.get(
+      Uri.parse('http://$ip:8080/api/v1/token/validate'), // 유효성 검증 API 엔드포인트
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+  }
+
+  Future<void> _handleInvalidToken(BuildContext context) async {
+    // 잘못된 토큰 처리 (토큰 삭제 및 로그인 페이지로 이동)
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('accessToken');
+    await prefs.remove('refreshToken');
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (Route<dynamic> route) => false,
+    );
   }
 }

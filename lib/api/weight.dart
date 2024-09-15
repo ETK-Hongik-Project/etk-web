@@ -68,12 +68,17 @@ Future<void> downloadWeightFile(BuildContext context) async {
     final bytes = response.bodyBytes;
 
     // You can now save the bytes as a file on the device (e.g., using path_provider or other file saving mechanism)
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/downloaded_weight.pte');
+    final directory = await getApplicationSupportDirectory();
+    final file = File('${directory.path}/xnnpack_classification_model.pte');
 
     await file.writeAsBytes(bytes);
 
     print('File saved at: ${file.path}');
+  } else if (response.statusCode == 404) {
+    throw Exception(
+        'Failed to download file: User not found / Weight file not found');
+  } else if (response.statusCode == 409) {
+    throw Exception('Failed to download file: Weight already updated');
   } else {
     throw Exception('Failed to download file');
   }
