@@ -50,7 +50,7 @@ Future<void> uploadWeightFile(BuildContext context, File weightFiles) async {
   }
 }
 
-Future<void> downloadWeightFile(BuildContext context) async {
+Future<void> downloadWeightFile() async {
   final accessToken = await getAccessToken();
 
   final response = await http.get(
@@ -59,9 +59,6 @@ Future<void> downloadWeightFile(BuildContext context) async {
       'Authorization': 'Bearer $accessToken',
     },
   );
-
-  // Ensure the token is valid
-  checkTokenValidation(context, response);
 
   if (response.statusCode == 200) {
     // File content in bytes
@@ -73,7 +70,7 @@ Future<void> downloadWeightFile(BuildContext context) async {
 
     await file.writeAsBytes(bytes);
 
-    print('File saved at: ${file.path}');
+    logger.i('Weight File saved at: ${file.path}');
   } else if (response.statusCode == 404) {
     throw Exception(
         'Failed to download file: User not found / Weight file not found');
