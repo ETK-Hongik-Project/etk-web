@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:etk_web/api/auth/logout.dart';
+import 'package:etk_web/api/image.dart';
 import 'package:etk_web/main.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
 import 'package:etk_web/widgets/image/upload_page.dart';
@@ -30,7 +31,7 @@ class KeyboardMainPage extends StatefulWidget {
 }
 
 class KeyboardMainPageState extends State<KeyboardMainPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   final _hangulInput = HangulInput('');
@@ -67,6 +68,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this); // Observer 등록
     _controller = CameraController(
       widget.camera,
       ResolutionPreset.low, // 240p
@@ -87,7 +89,42 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     debugPrint(_textController.text);
     _textController.removeListener(_updateDisplayText);
     _textController.dispose();
+    WidgetsBinding.instance.removeObserver(this); // Observer 해제
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      // 앱 종료 시점에 uploadImage 호출
+      _uploadImagesBeforeExit();
+    }
+  }
+
+  // 종료시 update_image 폴더에 있는 이미지를 서버로 전송.
+  Future<void> _uploadImagesBeforeExit() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final imageDir = Directory('${directory.path}/update_image');
+
+      if (await imageDir.exists()) {
+        final List<FileSystemEntity> files = imageDir.listSync();
+        List<File> imageFiles = [];
+        for (var entity in files) {
+          if (entity is File) {
+            imageFiles.add(entity);
+          }
+        }
+        if (imageFiles.isNotEmpty) {
+          await uploadImage(context, imageFiles);
+          logger.i("이미지 업로드 성공.");
+        } else {
+          logger.i("이미지 업로드 실패: 업로드할 이미지가 존재하지 않음.");
+        }
+      }
+    } catch (e) {
+      logger.e("이미지 업로드 실패: $e");
+    }
   }
 
   void _updateDisplayText() {
@@ -353,127 +390,171 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     _clearCache();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          '시선 추적 키보드',
-          style: TextStyle(
+  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("앱 종료",
+            style: TextStyle(
             color: Colors.deepPurpleAccent,
             fontWeight: FontWeight.bold,
           ),
+          ),
+          content: const Text("앱을 종료하시겠습니까?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // "아니오" 선택 시 종료하지 않음
+              },
+              child: const Text("아니오",
+                style: TextStyle(
+                  color: Colors.deepPurple,
+                ),),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // "예" 선택 시 종료
+              },
+              child: const Text("예",
+                style: TextStyle(
+                color: Colors.deepPurple,
+              ),
+              ),
+            ),
+          ],
+        );
+      },
+    ) ?? false; // Dialog가 취소되었을 때 false 반환
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        return await _showExitConfirmationDialog(context);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            '시선 추적 키보드',
+            style: TextStyle(
+              color: Colors.deepPurpleAccent,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.menu_rounded),
+              onSelected: (String result) {
+                switch (result) {
+                  case 'gallery':
+                    _navigateToGalleryScreen(context);
+                    break;
+                  case 'file_list':
+                    _navigateToFileListScreen(context);
+                    break;
+                  case 'community':
+                    _navigateToCommunityMainPage(context);
+                    break;
+                  case 'logout':
+                    logout(context);
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'gallery',
+                  child: Row(
+                    children: [
+                      Icon(Icons.photo),
+                      SizedBox(width: 6),
+                      Text('사진 전송'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'file_list',
+                  child: Row(
+                    children: [
+                      Icon(Icons.comment),
+                      SizedBox(width: 6),
+                      Text('대화 기록'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'community',
+                  child: Row(
+                    children: [
+                      Icon(Icons.people_alt),
+                      SizedBox(width: 6),
+                      Text('커뮤니티'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout),
+                      SizedBox(width: 6),
+                      Text('로그아웃'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+          ],
         ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu_rounded),
-            onSelected: (String result) {
-              switch (result) {
-                case 'gallery':
-                  _navigateToGalleryScreen(context);
-                  break;
-                case 'file_list':
-                  _navigateToFileListScreen(context);
-                  break;
-                case 'community':
-                  _navigateToCommunityMainPage(context);
-                  break;
-                case 'logout':
-                  logout(context);
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'gallery',
-                child: Row(
+        body: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: Stack(
                   children: [
-                    Icon(Icons.photo),
-                    SizedBox(width: 6),
-                    Text('사진 전송'),
+                    CenterContent(
+                      labels: _currentLabels,
+                      onButtonPressed: (index) {
+                        _state.handleInput(this, index);
+                        _createUpdateImage(index);
+                      },
+                    ),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: CameraPreviewWidget(
+                        controller: _controller,
+                        future: _initializeControllerFuture,
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: isTracking
+                          ? StopButton(
+                              onPressed: stopTracking,
+                              animationController: _animationController,
+                            )
+                          : StartButton(onPressed: startTracking),
+                    ),
                   ],
                 ),
               ),
-              const PopupMenuItem<String>(
-                value: 'file_list',
-                child: Row(
-                  children: [
-                    Icon(Icons.comment),
-                    SizedBox(width: 6),
-                    Text('대화 기록'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'community',
-                child: Row(
-                  children: [
-                    Icon(Icons.people_alt),
-                    SizedBox(width: 6),
-                    Text('커뮤니티'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout),
-                    SizedBox(width: 6),
-                    Text('로그아웃'),
-                  ],
-                ),
+              BottomTextField(
+                textController: _textController,
+                hangulInput: _hangulInput,
+                displayText: _displayText,
+                previousState: previousState,
+                logger: logger,
+                changeState: changeState,
+                resetDisplayText: resetDisplayText,
               ),
             ],
           ),
-          const SizedBox(
-            width: 10,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  CenterContent(
-                    labels: _currentLabels,
-                    onButtonPressed: (index) {
-                      _state.handleInput(this, index);
-                      _createUpdateImage(index);
-                    },
-                  ),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: CameraPreviewWidget(
-                      controller: _controller,
-                      future: _initializeControllerFuture,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: isTracking
-                        ? StopButton(
-                            onPressed: stopTracking,
-                            animationController: _animationController,
-                          )
-                        : StartButton(onPressed: startTracking),
-                  ),
-                ],
-              ),
-            ),
-            BottomTextField(
-              textController: _textController,
-              hangulInput: _hangulInput,
-              displayText: _displayText,
-              previousState: previousState,
-              logger: logger,
-              changeState: changeState,
-              resetDisplayText: resetDisplayText,
-            ),
-          ],
         ),
       ),
     );
