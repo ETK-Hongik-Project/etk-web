@@ -1,6 +1,7 @@
-import 'dart:io'; //
+import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:etk_web/api/weight.dart';
 import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ const String local_ip = "10.0.2.2";
 // ignore: constant_identifier_names
 const String dev_ip = "43.202.147.116";
 
-String ip = dev_ip;
+String ip = local_ip;
 
 ClassificationModel model = ClassificationModel();
 void main() async {
@@ -40,11 +41,15 @@ void main() async {
   // 앱 시작시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
   _clearCache();
 
-  // How to Update
-  final fileDir = await getApplicationSupportDirectory();
-  print("TMPDIR PATH");
-  print(fileDir.path);
+  // 가중치 서버에서 다운로드
+  try {
+    await downloadWeightFile();
+  } catch (e) {
+    logger.e("Error downloading weight file: $e");
+  }
 
+  // 가중치를 모델 적용
+  final fileDir = await getApplicationSupportDirectory();
   final modelPath = "${fileDir.path}/xnnpack_classification_model.pte";
 
   // Check if the model file exists
