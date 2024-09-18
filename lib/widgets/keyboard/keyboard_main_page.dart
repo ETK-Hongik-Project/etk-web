@@ -96,15 +96,17 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
   // update_image 디렉토리의 파일들 삭제
   Future<void> _clearUpdateImageFiles() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final imageDir = Directory('${directory.path}/update_image');
-    List<FileSystemEntity> imageFiles = imageDir.listSync();
+      final directory = await getApplicationDocumentsDirectory();
+      final imageDir = Directory('${directory.path}/update_image');
 
-    for (var entity in imageFiles) {
-      if (entity is File) {
-        await entity.delete(); // 파일 삭제
+      if (await imageDir.exists()) {
+        List<FileSystemEntity> imageFiles = imageDir.listSync();
+        for (var entity in imageFiles) {
+          if (entity is File) {
+            await entity.delete(); // 파일 삭제
+          }
+        }
       }
-    }
   }
 
   // 종료시 update_image 폴더에 있는 이미지를 서버로 전송.
