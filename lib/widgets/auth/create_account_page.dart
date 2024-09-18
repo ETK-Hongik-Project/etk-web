@@ -46,8 +46,20 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('환영합니다!'),
-            content: const Text('가입이 성공적으로 완료되었습니다.'),
+            backgroundColor: Colors.white,
+            title: const Text(
+              '환영합니다!',
+              style: TextStyle(
+                color: Colors.deepPurpleAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: const Text(
+              '가입이 성공적으로 완료되었습니다.',
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -59,7 +71,35 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                   );
                 },
-                child: const Text('로그인 페이지로 이동'),
+                child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurpleAccent,
+                      border: const Border(
+                        top: BorderSide(
+                          width: 6,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                        left: BorderSide(
+                          width: 12,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                        right: BorderSide(
+                          width: 12,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                        bottom: BorderSide(
+                          width: 6,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '로그인 페이지로 이동',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                    )),
               ),
             ],
           );
