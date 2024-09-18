@@ -28,9 +28,7 @@ Future<void> login(
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('accessToken', accessToken);
       await prefs.setString('refreshToken', refreshToken);
-      logger.i("token saved at SharedPreferences successfully");
-      logger.i("refresh token is :\n$refreshToken");
-      
+      logger.i("${DateTime.now()}\nlogin");
 
       Navigator.pushReplacement(
         context,
