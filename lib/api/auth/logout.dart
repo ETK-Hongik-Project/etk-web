@@ -11,8 +11,6 @@ Future<void> logout(BuildContext context) async {
   final accessToken = prefs.getString('accessToken');
   final logger = Logger();
 
-  logger.i('accessToken: $accessToken');
-
   if (accessToken != null) {
     final response = await http.post(
       Uri.parse('http://$ip:8080/api/v1/auth/logout'),
