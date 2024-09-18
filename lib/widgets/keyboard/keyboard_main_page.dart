@@ -5,14 +5,15 @@ import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/api/image.dart';
 import 'package:etk_web/main.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
-import 'package:etk_web/widgets/image/upload_page.dart';
 import 'package:etk_web/widgets/keyboard/file_list_screen.dart';
 import 'package:etk_web/widgets/keyboard/start_button.dart';
 import 'package:etk_web/widgets/keyboard/stop_button.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../api/auth/login.dart';
 import '../../keyboard_states.dart';
 import '../../utils/hangul/hangul.dart';
 import 'bottom_text_field.dart';
@@ -93,11 +94,16 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      // 앱 종료 시점에 uploadImage 호출
-      _uploadImagesBeforeExit();
+  // update_image 디렉토리의 파일들 삭제
+  Future<void> _clearUpdateImageFiles() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final imageDir = Directory('${directory.path}/update_image');
+    List<FileSystemEntity> imageFiles = imageDir.listSync();
+
+    for (var entity in imageFiles) {
+      if (entity is File) {
+        await entity.delete(); // 파일 삭제
+      }
     }
   }
 
@@ -117,7 +123,6 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         }
         if (imageFiles.isNotEmpty) {
           await uploadImage(context, imageFiles);
-          logger.i("이미지 업로드 성공.");
         } else {
           logger.i("이미지 업로드 실패: 업로드할 이미지가 존재하지 않음.");
         }
@@ -367,7 +372,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
     for (var entity in files) {
       if (entity is File) {
-        await entity.delete(); // 원본 파일 삭제
+        await entity.delete(); // 캐시 이미지 파일 삭제
       }
     }
   }
@@ -390,44 +395,89 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     _clearCache();
   }
 
-  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
-    return await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("앱 종료",
-            style: TextStyle(
-            color: Colors.deepPurpleAccent,
-            fontWeight: FontWeight.bold,
-          ),
-          ),
-          content: const Text("앱을 종료하시겠습니까?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false); // "아니오" 선택 시 종료하지 않음
-              },
-              child: const Text("아니오",
-                style: TextStyle(
-                  color: Colors.deepPurple,
-                ),),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true); // "예" 선택 시 종료
-              },
-              child: const Text("예",
-                style: TextStyle(
-                color: Colors.deepPurple,
-              ),
-              ),
-            ),
-          ],
-        );
-      },
-    ) ?? false; // Dialog가 취소되었을 때 false 반환
+  Future<void> _clearCacheDirectory() async {
+    // 캐시 디렉토리의 파일들 삭제
+    final tmpDir = await getTemporaryDirectory();
+    List<FileSystemEntity> tmpFiles = tmpDir.listSync();
+
+    for (var entity in tmpFiles) {
+      if (entity is File) {
+        await entity.delete(); // 파일 삭제
+      }
+    }
+
+    // /data/data/com.example.etk_web/app_flutter/image 폴더 삭제
+    final appDir = await getApplicationDocumentsDirectory();
+    final imageDir = Directory('${appDir.path}/image');
+
+    if (await imageDir.exists()) {
+      await _deleteDirectory(imageDir); // 폴더 내부 파일 및 서브 폴더까지 모두 삭제
+    }
   }
 
+// 폴더 내부의 파일들과 서브 디렉토리까지 모두 재귀적으로 삭제하는 함수
+  Future<void> _deleteDirectory(Directory dir) async {
+    if (await dir.exists()) {
+      try {
+        // 파일 및 서브 디렉토리 모두 삭제
+        dir.deleteSync(recursive: true);
+      } catch (e) {
+        logger.e("Error deleting directory: $e");
+      }
+    }
+  }
+
+  // 종료시 종료 여부 묻는 팝업 발생
+  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
+    return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text(
+                "앱 종료",
+                style: TextStyle(
+                  color: Colors.deepPurpleAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: const Text(
+                "앱을 종료하시겠습니까?",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
+                    await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+                    await _clearUpdateImageFiles(); // 전송한 이미지들 삭제
+                    Navigator.of(context).pop(true); // "예" 선택 시 종료
+                  },
+                  child: const Text(
+                    "예",
+                    style: TextStyle(
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // "아니오" 선택 시 종료하지 않음
+                  },
+                  child: const Text(
+                    "아니오",
+                    style: TextStyle(
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false; // Dialog가 취소되었을 때 false 반환
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -437,21 +487,19 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            '시선 추적 키보드',
-            style: TextStyle(
-              color: Colors.deepPurpleAccent,
-              fontWeight: FontWeight.bold,
+          title:
+            const Text(
+              '시선 추적 키보드',
+              style: TextStyle(
+                color: Colors.deepPurpleAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.menu_rounded),
               onSelected: (String result) {
                 switch (result) {
-                  case 'gallery':
-                    _navigateToGalleryScreen(context);
-                    break;
                   case 'file_list':
                     _navigateToFileListScreen(context);
                     break;
@@ -464,16 +512,6 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'gallery',
-                  child: Row(
-                    children: [
-                      Icon(Icons.photo),
-                      SizedBox(width: 6),
-                      Text('사진 전송'),
-                    ],
-                  ),
-                ),
                 const PopupMenuItem<String>(
                   value: 'file_list',
                   child: Row(
@@ -556,15 +594,6 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _navigateToGalleryScreen(BuildContext context) async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const UploadPage(),
       ),
     );
   }

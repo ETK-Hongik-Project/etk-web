@@ -21,6 +21,7 @@ const String dev_ip = "43.202.147.116";
 
 String ip = local_ip;
 
+
 ClassificationModel model = ClassificationModel();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +39,7 @@ void main() async {
     throw Exception('전면 카메라를 찾을 수 없습니다.');
   }
 
-  // 앱 시작시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
-  _clearCache();
+  runApp(const MyApp());
 
   // 가중치 서버에서 다운로드
   try {
@@ -47,6 +47,7 @@ void main() async {
   } catch (e) {
     logger.e("Error downloading weight file: $e");
   }
+
 
   // 가중치를 모델 적용
   final fileDir = await getApplicationSupportDirectory();
@@ -61,40 +62,6 @@ void main() async {
   } else {
     logger.w("Model update unavailable: The file does not exist.");
   }
-
-  runApp(const MyApp());
-}
-
-Future<void> _clearCache() async {
-  // 캐시 디렉토리의 파일들 삭제
-  final tmpDir = await getTemporaryDirectory();
-  List<FileSystemEntity> tmpFiles = tmpDir.listSync();
-
-  for (var entity in tmpFiles) {
-    if (entity is File) {
-      await entity.delete(); // 파일 삭제
-    }
-  }
-
-  // /data/data/com.example.etk_web/app_flutter/image 폴더 삭제
-  final appDir = await getApplicationDocumentsDirectory();
-  final imageDir = Directory('${appDir.path}/image');
-
-  if (await imageDir.exists()) {
-    await _deleteDirectory(imageDir); // 폴더 내부 파일 및 서브 폴더까지 모두 삭제
-  }
-}
-
-// 폴더 내부의 파일들과 서브 디렉토리까지 모두 재귀적으로 삭제하는 함수
-Future<void> _deleteDirectory(Directory dir) async {
-  if (await dir.exists()) {
-    try {
-      // 파일 및 서브 디렉토리 모두 삭제
-      dir.deleteSync(recursive: true);
-    } catch (e) {
-      logger.e("Error deleting directory: $e");
-    }
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -102,6 +69,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Future<bool> _loginFuture = _reissueAndValidateLoginStatus(context); // 캐시된 Future
+
     return MaterialApp(
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
@@ -118,7 +87,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: FutureBuilder<bool>(
-        future: _checkLoginStatus(),
+        future: _loginFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
@@ -134,52 +103,63 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  Future<bool> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('accessToken') != null;
-  }
-
-  Future<bool> _checkAndValidateLoginStatus(BuildContext context) async {
+  Future<bool> _reissueAndValidateLoginStatus(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     final accessToken = prefs.getString('accessToken');
+    final refreshToken = prefs.getString('refreshToken');
 
     // 만약 accessToken이 없다면 false 반환
-    if (accessToken == null) {
+    if (accessToken == null || refreshToken == null) {
+      logger.w("Token was missing");
       return false;
     }
 
     // accessToken의 유효성 검증
-    final response = await _validateToken(accessToken);
+    logger.i("refresh token: $refreshToken");
+    final response = await _reissueToken(accessToken, refreshToken);
 
-    // 토큰이 유효하지 않으면 false 반환하고 로그인 페이지로 이동
-    if (response.statusCode == 401) {
+    logger.w(response.headers["accessToken"]!);
+    logger.w(response.headers["refreshToken"]!);
+
+    // reissue 요청시 400 에러 발생 시 로그인 페이지로 이동
+    if (response.statusCode == 400) {
       await _handleInvalidToken(context);
       return false;
     }
 
-    // 토큰이 유효하면 true 반환
+    // Token 갱신
+    // 유효한지 확인 후 토큰을 업데이트
+    if (response.headers["accessToken"] != null && response.headers["refreshToken"] != null) {
+      prefs.remove("accessToken");
+      prefs.remove("refreshToken");
+
+      prefs.setString("accessToken", response.headers["accessToken"]!);
+      prefs.setString("refreshToken", response.headers["refreshToken"]!);
+
+      logger.i("Tokens successfully updated.");
+    } else {
+      logger.e("Failed to update tokens. Server response was invalid.");
+    }
+
     return true;
   }
 
-  Future<http.Response> _validateToken(String accessToken) async {
+  Future<http.Response> _reissueToken(String accessToken, String refreshToken) async {
     // 토큰 검증을 위한 API 요청 (유효한지 확인하는 API를 호출해야 함)
-    return await http.get(
-      Uri.parse('http://$ip:8080/api/v1/token/validate'), // 유효성 검증 API 엔드포인트
+    return await http.post(
+      Uri.parse('http://$ip:8080/api/v1/auth/reissue'), // 토큰 재 발행 검증 API 엔드포인트
       headers: {
-        'Authorization': 'Bearer $accessToken',
+        'accessToken': accessToken,
+        'refreshToken': refreshToken
       },
     );
   }
 
   Future<void> _handleInvalidToken(BuildContext context) async {
-    // 잘못된 토큰 처리 (토큰 삭제 및 로그인 페이지로 이동)
+    // 잘못된 토큰 처리 (토큰 삭제)
+    logger.w("Invalid token");
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('accessToken');
     await prefs.remove('refreshToken');
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-      (Route<dynamic> route) => false,
-    );
   }
 }
