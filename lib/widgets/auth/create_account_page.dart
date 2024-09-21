@@ -95,7 +95,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
-                      '로그인 페이지로 이동',
+                      '로그인 하러가기',
                       style: TextStyle(
                         color: Colors.white,
                       ),
