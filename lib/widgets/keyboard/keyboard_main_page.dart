@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/api/image.dart';
 import 'package:etk_web/main.dart';
+import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
 import 'package:etk_web/widgets/keyboard/file_list_screen.dart';
 import 'package:etk_web/widgets/keyboard/start_button.dart';
@@ -96,17 +97,17 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
   // update_image 디렉토리의 파일들 삭제
   Future<void> _clearUpdateImageFiles() async {
-      final directory = await getApplicationDocumentsDirectory();
-      final imageDir = Directory('${directory.path}/update_image');
+    final directory = await getApplicationDocumentsDirectory();
+    final imageDir = Directory('${directory.path}/update_image');
 
-      if (await imageDir.exists()) {
-        List<FileSystemEntity> imageFiles = imageDir.listSync();
-        for (var entity in imageFiles) {
-          if (entity is File) {
-            await entity.delete(); // 파일 삭제
-          }
+    if (await imageDir.exists()) {
+      List<FileSystemEntity> imageFiles = imageDir.listSync();
+      for (var entity in imageFiles) {
+        if (entity is File) {
+          await entity.delete(); // 파일 삭제
         }
       }
+    }
   }
 
   // 종료시 update_image 폴더에 있는 이미지를 서버로 전송.
@@ -452,7 +453,9 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                 TextButton(
                   onPressed: () async {
                     await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
-                    await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+                    if (isLoggedIn) {
+                      await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+                    }
                     await _clearUpdateImageFiles(); // 전송한 이미지들 삭제
                     Navigator.of(context).pop(true); // "예" 선택 시 종료
                   },
@@ -489,14 +492,13 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       },
       child: Scaffold(
         appBar: AppBar(
-          title:
-            const Text(
-              '시선 추적 키보드',
-              style: TextStyle(
-                color: Colors.deepPurpleAccent,
-                fontWeight: FontWeight.bold,
-              ),
+          title: const Text(
+            '시선 추적 키보드',
+            style: TextStyle(
+              color: Colors.deepPurpleAccent,
+              fontWeight: FontWeight.bold,
             ),
+          ),
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.menu_rounded),
@@ -524,26 +526,28 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                     ],
                   ),
                 ),
-                const PopupMenuItem<String>(
-                  value: 'community',
-                  child: Row(
-                    children: [
-                      Icon(Icons.people_alt),
-                      SizedBox(width: 6),
-                      Text('커뮤니티'),
-                    ],
+                if (isLoggedIn)
+                  const PopupMenuItem<String>(
+                    value: 'community',
+                    child: Row(
+                      children: [
+                        Icon(Icons.people_alt),
+                        SizedBox(width: 6),
+                        Text('커뮤니티'),
+                      ],
+                    ),
                   ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout),
-                      SizedBox(width: 6),
-                      Text('로그아웃'),
-                    ],
+                if (isLoggedIn)
+                  const PopupMenuItem<String>(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout),
+                        SizedBox(width: 6),
+                        Text('로그아웃'),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
             const SizedBox(

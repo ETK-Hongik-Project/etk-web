@@ -103,6 +103,7 @@ class _MyAppState extends State<MyApp> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
           } else if (snapshot.hasData && snapshot.data == true) {
+            isLoggedIn = true;
             return KeyboardMainPage();
           } else {
             return const LoginPage();
