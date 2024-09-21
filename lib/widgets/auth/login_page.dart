@@ -3,6 +3,10 @@ import 'package:etk_web/widgets/auth/create_account_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
+import '../keyboard/keyboard_main_page.dart';
+
+bool isLoggedIn = false; // 유저의 로그인 여부 (로그인, 비회원 이용하기 구분)
+
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
@@ -51,6 +55,15 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void _nonMemberLogin(){
+    isLoggedIn = false;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => KeyboardMainPage()),
+    );
   }
 
   @override
@@ -126,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurpleAccent,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -141,6 +154,28 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+              SizedBox(height: 10,),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _nonMemberLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 5, // Shadow applied to the button
+                  ),
+                  child: const Text(
+                    '비회원 이용하기',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 20),
               TextButton(
                 child: const Text(
