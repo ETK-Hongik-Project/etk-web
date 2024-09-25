@@ -30,7 +30,7 @@ Future<void> logout(BuildContext context) async {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+        MaterialPageRoute(builder: (context) => const MyApp()),
       );
     } else {
       logger.e('Failed to logout: ${response.statusCode}');
