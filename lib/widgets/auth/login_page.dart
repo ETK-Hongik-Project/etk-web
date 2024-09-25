@@ -57,8 +57,12 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void _nonMemberLogin(){
-    isLoggedIn = false;
+  void _nonMemberLogin() {
+    setState(() {
+      isLoggedIn = false;
+    });
+
+    logger.i("비회원 로그인");
 
     Navigator.pushReplacement(
       context,
@@ -154,7 +158,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

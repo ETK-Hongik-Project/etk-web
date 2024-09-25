@@ -484,6 +484,29 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         false; // Dialog가 취소되었을 때 false 반환
   }
 
+  void _handleMenuSelection(String result, BuildContext context) async {
+    switch (result) {
+      case 'file_list':
+        _navigateToFileListScreen(context);
+        break;
+      case 'community':
+        _navigateToCommunityMainPage(context);
+        break;
+      case 'logout':
+        await _handleLogout(context); // 비동기 함수로 분리하여 처리
+        break;
+      case 'login':
+        _navigateToLoginPage(context);
+        break;
+    }
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
+    await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+    await _clearUpdateImageFiles();
+    logout(context);
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -502,19 +525,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.menu_rounded),
-              onSelected: (String result) {
-                switch (result) {
-                  case 'file_list':
-                    _navigateToFileListScreen(context);
-                    break;
-                  case 'community':
-                    _navigateToCommunityMainPage(context);
-                    break;
-                  case 'logout':
-                    logout(context);
-                    break;
-                }
-              },
+              onSelected: (String result)=> _handleMenuSelection(result, context),
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                 const PopupMenuItem<String>(
                   value: 'file_list',
@@ -545,6 +556,17 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                         Icon(Icons.logout),
                         SizedBox(width: 6),
                         Text('로그아웃'),
+                      ],
+                    ),
+                  ),
+                if (!isLoggedIn) // 비회원 이용인 경우에만 보임
+                  const PopupMenuItem<String>(
+                    value: 'login',
+                    child: Row(
+                      children: [
+                        Icon(Icons.login),
+                        SizedBox(width: 6),
+                        Text('로그인하러 가기'),
                       ],
                     ),
                   ),
@@ -618,6 +640,15 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       context,
       MaterialPageRoute(
         builder: (context) => const CommunityMainPage(),
+      ),
+    );
+  }
+
+  void _navigateToLoginPage(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MyApp(),
       ),
     );
   }
