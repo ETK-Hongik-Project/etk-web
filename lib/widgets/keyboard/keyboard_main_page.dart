@@ -73,7 +73,11 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     WidgetsBinding.instance.addObserver(this); // Observer 등록
     _controller = CameraController(
       widget.camera,
-      ResolutionPreset.low, // 240p
+      ResolutionPreset.high,
+      enableAudio: false,
+      imageFormatGroup: Platform.isAndroid
+          ? ImageFormatGroup.nv21 // for Android
+          : ImageFormatGroup.bgra8888, // for iOS
     );
     _currentLabels = consonantPages[0];
     _initializeControllerFuture = _controller.initialize();
@@ -245,6 +249,9 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       while (isTracking && pictureCount < totalNumOfPicture) {
         // 사진 촬영 + 사진을 캐시에 저장
         final image = await _controller.takePicture();
+
+        //TODO: Check the Ret
+        final ret = await model.predict(image.path);
 
         pictureCount++;
 
