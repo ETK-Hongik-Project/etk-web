@@ -51,7 +51,7 @@ class ClassificationModel {
       y: bbox.top.toInt(),
       width: bbox.width.toInt(),
       height: bbox.height.toInt(),
-    ), );
+    ), width: 112, height: 112);
     final Map<String, int> originSize = {"width": originalImage.width, "height": originalImage.height};
     final Map<String, int> boundingBox = {
       "x": bbox.left.toInt(),
@@ -60,7 +60,7 @@ class ClassificationModel {
       "height": bbox.height.toInt()
     };
 
-    // 전달 정보. 원래 이지미지의 크기와, 바운딩 박스
+    // 전달 정보. 원래 이미지의 크기와, 바운딩 박스
     try{
       // 크롭된 이미지를 바이트 배열로 변환
       Uint8List imageBytes = Uint8List.fromList(img.encodeJpg(croppedFace));

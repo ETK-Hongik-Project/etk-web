@@ -73,7 +73,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     WidgetsBinding.instance.addObserver(this); // Observer 등록
     _controller = CameraController(
       widget.camera,
-      ResolutionPreset.high,
+      ResolutionPreset.medium,
       enableAudio: false,
       imageFormatGroup: Platform.isAndroid
           ? ImageFormatGroup.nv21 // for Android
@@ -250,14 +250,19 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         // 사진 촬영 + 사진을 캐시에 저장
         final image = await _controller.takePicture();
 
-        //TODO: Check the Ret
-        final ret = await model.predict(image.path);
+        logger.i("************** 실시간 예측 시작 **************");
+
+        final futurePred = model.predict(image.path);
 
         pictureCount++;
 
         // 1.5초 동안 5장 찍음
         var duration = 1500 ~/ totalNumOfPicture;
         await Future.delayed(Duration(milliseconds: duration));
+
+        final ret = await futurePred;
+        logger.i("************** 실시간 예측 결과 : $ret **************");
+
       }
 
       var finish = DateTime.now();

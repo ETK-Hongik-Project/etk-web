@@ -14,24 +14,45 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.io.File;
 import java.nio.FloatBuffer;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.pytorch.executorch.EValue;
 import org.pytorch.executorch.Module;
 import org.pytorch.executorch.Tensor;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugins.GeneratedPluginRegistrant;
+import com.google.gson.Gson;
 
 
 public class RegressionActivity {
-    private FlutterActivity flutterActivity;
+    private MainActivity mainActivity;
     private Module module = null;
 
     int faceWidth = 112;
     int faceHeight = 112;
 
-    public RegressionActivity(FlutterActivity flutterActivity){
-        this.flutterActivity = flutterActivity;
+    Map<String, Objects> jsonMap = new HashMap<>();
+    // TODO: FileName도 보내야할텐데.. 파일 이름의 유일성이 보장되나? 우선 파일 이름은 보류
+    List<String> fileNames = new ArrayList<>();
+    List<List<Integer>> boundingBoxes = new ArrayList<>();
+    List<List<Integer>> labelFaceGrids = new ArrayList<>();
+
+    public RegressionActivity(MainActivity mainActivity){
+        this.mainActivity = mainActivity;
+        try {
+            module = Module.load(this.mainActivity.assetFilePath(this.mainActivity, "xnnpack_classification_model.pte"));
+        } catch (IOException e) {
+            Log.e("PytorchModuleException", "NonExist Module", e);
+        }
     }
 
     public void updateModel(String modelPath){
@@ -40,23 +61,16 @@ public class RegressionActivity {
             module = Module.load(modelPath);
         } catch (Exception e) {
             Log.e("PytorchHelloWorld", "Error Update Model", e);
-            flutterActivity.finish();
+            mainActivity.finish();
         }
     }
 
     public float[] runModel(String imgPath) {
         Bitmap bitmap = null;
-        try {
-            File imgFile = new File(imgPath);
-            bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            bitmap = Bitmap.createScaledBitmap(bitmap, faceWidth, faceHeight, true);
-            if(module == null) {
-                module = Module.load(MainActivity.assetFilePath(this.flutterActivity, "xnnpack_classification_model.pte"));
-            }
-        } catch (IOException e) {
-            Log.e("PytorchHelloWorld", "Error reading assets", e);
-            flutterActivity.finish();
-        }
+        File imgFile = new File(imgPath);
+        bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+        bitmap = Bitmap.createScaledBitmap(bitmap, faceWidth, faceHeight, true);
+
 
         // preparing input tensor
         final Tensor inputTensor =
@@ -74,6 +88,7 @@ public class RegressionActivity {
     }
 
     public int predict(byte[] faceImgBytes, Map<String, Integer> originSize, Map<String, Integer> boundingBox){
+
         Bitmap bitmap = BitmapFactory.decodeByteArray(faceImgBytes, 0, faceImgBytes.length);
         bitmap = Bitmap.createScaledBitmap(bitmap, faceWidth, faceHeight, true);
         Tensor inputTensor = processImage(bitmap, originSize, boundingBox);
@@ -105,10 +120,17 @@ public class RegressionActivity {
         int labelFaceW = boundingBox.get("width");
         int labelFaceH = boundingBox.get("height");
 
+        boundingBoxes.add(Arrays.asList(labelFaceX, labelFaceY, labelFaceW, labelFaceH));
+
         // Label Face Grid 생성
         int gridW = 25; // 예시 그리드 크기 설정
         int gridH = 25; // 예시 그리드 크기 설정
         int[] labelFaceGrid = createLabelFaceGrid(frameW, frameH, gridW, gridH, labelFaceX, labelFaceY, labelFaceW, labelFaceH);
+        List<Integer> tmpGrid = new ArrayList<>();
+        for(int g: labelFaceGrid){
+            tmpGrid.add(g);
+        }
+        labelFaceGrids.add(tmpGrid);
 
         // Grid Info 생성 (Row, Column 정보 생성)
         int imgWidth = bitmapImg.getWidth();
@@ -212,5 +234,15 @@ public class RegressionActivity {
         }
 
         return Tensor.fromBlob(outBuffer, shape);
+    }
+
+    public String toJson(){
+        // FIXME: ArrayList<List<Integer>>는 Object가 아닌겨?
+        jsonMap.put("boundingBox", boundingBoxes);
+        jsonMap.put("labelFaceGrid", labelFaceGrids);
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(jsonMap);
+
+        return jsonString;
     }
 }
