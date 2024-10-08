@@ -76,5 +76,6 @@ dependencies {
         exclude group:"com.facebook.fbjni", module: "fbjni-java-only"
     }
     implementation 'androidx.annotation:annotation-jvm:1.8.2'
+    implementation 'com.google.code.gson:gson:2.11.0'
 //    implementation 'io.flutter:flutter_embedding_release'  // Flutter 종속성 추가
 }
