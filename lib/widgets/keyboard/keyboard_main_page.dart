@@ -47,6 +47,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   bool isTracking = false;
   late AnimationController _animationController;
   int _currentImageDirIndex = 0;
+  bool _showNextButton = true;
 
   final List<String> selectionPage = ['자음', '모음'];
 
@@ -206,16 +207,19 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
           _currentLabels = consonantPages[index];
           _isConsonantPage = true;
           _isVowelPage = false;
+          _showNextButton = true;
           break;
         case "vowel":
           _currentLabels = vowelPages[index];
           _isConsonantPage = false;
           _isVowelPage = true;
+          _showNextButton = true;
           break;
         case "select":
           _currentLabels = selectionPage;
           _isConsonantPage = false;
           _isVowelPage = false;
+          _showNextButton = false;
           break;
       }
     });
@@ -598,6 +602,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                   children: [
                     CenterContent(
                       labels: _currentLabels,
+                      showNextButton: _showNextButton,
                       onButtonPressed: (index) {
                         _state.handleInput(this, index);
                         _createUpdateImage(index);
