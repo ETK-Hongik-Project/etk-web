@@ -236,13 +236,13 @@ public class RegressionActivity {
         return Tensor.fromBlob(outBuffer, shape);
     }
 
-    public String toJson(){
-        // FIXME: ArrayList<List<Integer>>는 Object가 아닌겨?
-        jsonMap.put("boundingBox", boundingBoxes);
-        jsonMap.put("labelFaceGrid", labelFaceGrids);
-        Gson gson = new Gson();
-        String jsonString = gson.toJson(jsonMap);
-
-        return jsonString;
-    }
+//    public String toJson(){
+//        // FIXME: ArrayList<List<Integer>>는 Object가 아닌겨?
+//        jsonMap.put("boundingBox", boundingBoxes);
+//        jsonMap.put("labelFaceGrid", labelFaceGrids);
+//        Gson gson = new Gson();
+//        String jsonString = gson.toJson(jsonMap);
+//
+//        return jsonString;
+//    }
 }

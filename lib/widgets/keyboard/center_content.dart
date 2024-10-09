@@ -5,23 +5,28 @@ import 'positioned_button.dart';
 class CenterContent extends StatelessWidget {
   final List<String> labels;
   final Function(int) onButtonPressed;
+  final bool showNextButton;
 
   const CenterContent({
     super.key,
     required this.labels,
     required this.onButtonPressed,
+    this.showNextButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
     List<Widget> buttons = [];
 
-    buttons.add(PositionedButton(
+    if (showNextButton) {
+      buttons.add(PositionedButton(
         alignment: Alignment.center,
         padding: const EdgeInsets.all(16.0),
         label: "다음",
         index: 4,
-        onPressed: () => onButtonPressed(4)));
+        onPressed: () => onButtonPressed(4),
+      ));
+    }
 
     if (labels.isNotEmpty) {
       buttons.add(
