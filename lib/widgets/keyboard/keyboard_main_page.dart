@@ -254,9 +254,9 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         // 사진 촬영 + 사진을 캐시에 저장
         final image = await _controller.takePicture();
 
-        logger.i("************** 실시간 예측 시작 **************");
+        // logger.i("************** 실시간 예측 시작 **************");
 
-        final futurePred = model.predict(image.path);
+        // final futurePred = model.predict(image.path);
 
         pictureCount++;
 
@@ -264,8 +264,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         var duration = 1500 ~/ totalNumOfPicture;
         await Future.delayed(Duration(milliseconds: duration));
 
-        final ret = await futurePred;
-        logger.i("************** 실시간 예측 결과 : $ret **************");
+        // final ret = await futurePred;
+        // logger.i("************** 실시간 예측 결과 : $ret **************");
 
       }
 
@@ -301,10 +301,12 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
     for (var entity in files) {
       if (entity is File) {
-        final result = await model.runModel(entity.path);
+        final result = await model.predict(entity.path);
         frequencyMap[result] = frequencyMap[result]! + 1;
       }
     }
+
+    logger.i(frequencyMap);
 
     int label = -1;
     int maxFrequency = 0;

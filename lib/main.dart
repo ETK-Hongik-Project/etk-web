@@ -62,6 +62,32 @@ void main() async {
   } else {
     logger.w("Model update unavailable: The file does not exist.");
   }
+
+  // Model Test
+  final tmpDir = await getTemporaryDirectory();
+  List<FileSystemEntity> files = tmpDir.listSync();
+
+  Map<int, int> frequencyMap = {-1: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0};
+
+  for (var entity in files) {
+    if (entity is File) {
+      final result = await model.predict(entity.path);
+      frequencyMap[result] = frequencyMap[result]! + 1;
+    }
+  }
+
+  logger.i(frequencyMap);
+
+  int label = -1;
+  int maxFrequency = 0;
+  frequencyMap.forEach((key, value) {
+    if (value > maxFrequency) {
+      maxFrequency = value;
+      label = key;
+    }
+  });
+
+
 }
 
 class MyApp extends StatefulWidget {
