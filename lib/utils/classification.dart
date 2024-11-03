@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import 'package:path/path.dart';
 
 
 class ClassificationModel {
@@ -13,6 +14,9 @@ class ClassificationModel {
   // 내 생각에는 이건 항상 켜져있어야해서 그때그때 받아오는게 더 부하가 있을 듯?
 
   final logger = Logger();
+
+  var img_names = [];
+  var bboxes = [];
 
 
   final faceDetector = FaceDetector(options: FaceDetectorOptions(
@@ -67,6 +71,10 @@ class ClassificationModel {
         "height": bbox.height.toInt()
       };
 
+      // JSON을 만들기 위한 준비.
+      img_names.add(basename(imgPath));
+      bboxes.add([bbox.left, bbox.top, bbox.right, bbox.bottom]); // ltrb
+
       // 전달 정보. 원래 이미지의 크기와, 바운딩 박스
       try{
         // 크롭된 이미지를 바이트 배열로 변환
@@ -107,5 +115,12 @@ class ClassificationModel {
       print("Failed to Update Model: ${e.message}.");
       return;
     }
+  }
+
+  Map<String, dynamic> toJson(){
+    return {
+      'img_name':img_names,
+      'bbox':bboxes,
+    };
   }
 }
