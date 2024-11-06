@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -12,9 +13,7 @@ import 'package:etk_web/widgets/keyboard/stop_button.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../api/auth/login.dart';
 import '../../keyboard_states.dart';
 import '../../utils/hangul/hangul.dart';
 import 'bottom_text_field.dart';
@@ -122,17 +121,22 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       final imageDir = Directory('${directory.path}/update_image');
 
       if (await imageDir.exists()) {
+        List<File> uploadFiles = [];
+
         final List<FileSystemEntity> files = imageDir.listSync();
-        List<File> imageFiles = [];
-        for (var entity in files) {
-          if (entity is File) {
-            imageFiles.add(entity);
-          }
-        }
-        if (imageFiles.isNotEmpty) {
-          await uploadImage(context, imageFiles);
-        } else {
+        if (files.isEmpty) {
           logger.i("이미지 업로드 실패: 업로드할 이미지가 존재하지 않음.");
+        } else {
+          for (var entity in files) {
+            Map<String, dynamic> jsonMap = model.toJson();
+            _createJsonToUpdateImageFolder(jsonMap);
+
+            if (entity is File) {
+              uploadFiles.add(entity);
+            }
+
+            await uploadImage(context, uploadFiles);
+          }
         }
       }
     } catch (e) {
@@ -324,7 +328,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     if (label == -1) {
       _clearCache();
       throw Exception("gaze is invalid (gaze: -1)");
-    } else{
+    } else {
       logger.i("Classification Result: $label");
     }
 
@@ -352,6 +356,17 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
     logger.i("파일이동: $targetDir");
     return label;
+  }
+
+  void _createJsonToUpdateImageFolder(Map<String, dynamic> jsonMap) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final targetDir = Directory('${directory.path}/update_image');
+
+    String json = jsonEncode(jsonMap); // json 변환
+    logger.e(json);
+
+    final file = File('${targetDir.path}/prediction.json');
+    file.writeAsString(json);
   }
 
   /// undoCount가 1인 경우 undo한 파일을 새로 선택된 label과 함께 update_image 폴더로 복사
