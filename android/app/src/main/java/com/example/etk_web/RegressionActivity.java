@@ -84,16 +84,18 @@ public class RegressionActivity {
 
         final float[] scores = outputTensor.getDataAsFloatArray();
 
+        Log.i("Score in Java", Arrays.toString(scores));
+
         return scores;
     }
 
     public int predict(byte[] faceImgBytes, Map<String, Integer> originSize, Map<String, Integer> boundingBox){
-
         Bitmap bitmap = BitmapFactory.decodeByteArray(faceImgBytes, 0, faceImgBytes.length);
-        bitmap = Bitmap.createScaledBitmap(bitmap, faceWidth, faceHeight, true);
         Tensor inputTensor = processImage(bitmap, originSize, boundingBox);
+        Log.i("Input Tensor", EValue.from(inputTensor).toString());
         Tensor outputTensor = module.forward(EValue.from(inputTensor))[0].toTensor();
         final float[] scores = outputTensor.getDataAsFloatArray();
+        Log.i("Score in Java", Arrays.toString(scores));
         return argmax(scores);
     }
 
@@ -210,12 +212,12 @@ public class RegressionActivity {
         for (int y = 0; y < imgHeight; y++) {
             for (int x = 0; x < imgWidth; x++) {
                 int pixel = src.getPixel(x, y);
-                int red = (pixel >> 16) & 0xFF;
-                int green = (pixel >> 8) & 0xFF;
-                int blue = pixel & 0xFF;
-                int gray = (red + green + blue) / 3;
+                float red = ((((pixel >> 16) & 0xFF) / 255.0f) - 0.485f) / 0.229f;
+                float green = ((((pixel >> 8) & 0xFF) / 255.0f) - 0.456f) / 0.224f;
+                float blue = (((pixel & 0xFF) / 255.0f) - 0.405f) / 0.225f;
+                float gray = (red + green + blue) / 3;
 
-                grayscale[y * imgWidth + x] = gray * 0.08f - 1;
+                grayscale[y * imgWidth + x] = gray;
             }
         }
 

@@ -254,9 +254,9 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         // 사진 촬영 + 사진을 캐시에 저장
         final image = await _controller.takePicture();
 
-        logger.i("************** 실시간 예측 시작 **************");
+        // logger.i("************** 실시간 예측 시작 **************");
 
-        final futurePred = model.predict(image.path);
+        // final futurePred = model.predict(image.path);
 
         pictureCount++;
 
@@ -264,9 +264,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
         var duration = 1500 ~/ totalNumOfPicture;
         await Future.delayed(Duration(milliseconds: duration));
 
-        final ret = await futurePred;
-        logger.i("************** 실시간 예측 결과 : $ret **************");
-
+        // final ret = await futurePred;
+        // logger.i("************** 실시간 예측 결과 : $ret **************");
       }
 
       var finish = DateTime.now();
@@ -274,17 +273,22 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
       // 촬영이 끝나면 사진 분석 시작
       if (isTracking) {
-        int index = await _extractDirection();
+        try {
+          int gaze = await _extractDirection();
 
-        /**index 값에 따라서 keyboard 인식**/
-        setState(() {
-          _state.handleInput(this, index);
-        });
+          /**index 값에 따라서 keyboard 인식**/
+          setState(() {
+            _state.handleInput(this, gaze);
+          });
 
-        _createUpdateImage(index);
+          _createUpdateImage(gaze);
 
-        undoCount = 0; // 글자를 선택했으므로 undoCount 초기화
-        pictureCount = 0;
+          undoCount = 0; // 글자를 선택했으므로 undoCount 초기화
+          pictureCount = 0;
+        } catch (e) {
+          pictureCount = 0;
+          logger.w(e);
+        }
       }
     }
 
@@ -301,10 +305,12 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
     for (var entity in files) {
       if (entity is File) {
-        final result = await model.runModel(entity.path);
+        final result = await model.predict(entity.path);
         frequencyMap[result] = frequencyMap[result]! + 1;
       }
     }
+
+    logger.i(frequencyMap);
 
     int label = -1;
     int maxFrequency = 0;
@@ -315,7 +321,12 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
       }
     });
 
-    logger.i("Classification Result: $label");
+    if (label == -1) {
+      _clearCache();
+      throw Exception("gaze is invalid (gaze: -1)");
+    } else{
+      logger.i("Classification Result: $label");
+    }
 
     // Direction 값을 저장할 디렉터리 경로 설정
     final directory = await getApplicationDocumentsDirectory();
@@ -523,6 +534,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     await _clearUpdateImageFiles();
     logout(context);
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -541,7 +553,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.menu_rounded),
-              onSelected: (String result)=> _handleMenuSelection(result, context),
+              onSelected: (String result) =>
+                  _handleMenuSelection(result, context),
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                 const PopupMenuItem<String>(
                   value: 'file_list',

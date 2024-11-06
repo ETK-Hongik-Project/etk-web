@@ -62,6 +62,7 @@ void main() async {
   } else {
     logger.w("Model update unavailable: The file does not exist.");
   }
+
 }
 
 class MyApp extends StatefulWidget {
