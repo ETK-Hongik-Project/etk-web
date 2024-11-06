@@ -1,3 +1,5 @@
+import 'package:etk_web/main.dart';
+
 import 'widgets/keyboard/keyboard_main_page.dart';
 
 // TODO:
@@ -31,7 +33,7 @@ class S0State implements KeyboardState {
     if (gaze == 4) {
       context.incrementIdx();
       context.updateLabels(context.getIdx(), board);
-    } else {
+    }  else {
       String text = context.consonantPages[context.getIdx()][gaze];
       context.inputText(text);
       context.changeState(S1State());
