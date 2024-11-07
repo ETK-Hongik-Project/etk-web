@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/api/image.dart';
+import 'package:etk_web/api/json.dart';
 import 'package:etk_web/main.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
@@ -12,9 +14,7 @@ import 'package:etk_web/widgets/keyboard/stop_button.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../api/auth/login.dart';
 import '../../keyboard_states.dart';
 import '../../utils/hangul/hangul.dart';
 import 'bottom_text_field.dart';
@@ -116,24 +116,27 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   }
 
   // 종료시 update_image 폴더에 있는 이미지를 서버로 전송.
-  Future<void> _uploadImagesBeforeExit() async {
+  Future<void> _uploadFilesBeforeExit() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final imageDir = Directory('${directory.path}/update_image');
 
       if (await imageDir.exists()) {
+        List<File> uploadFiles = [];
         final List<FileSystemEntity> files = imageDir.listSync();
-        List<File> imageFiles = [];
+
+        Map<String, dynamic> jsonMap = model.toJson();
+        String json = jsonEncode(jsonMap);
+        await uploadJson(context, json);
+
         for (var entity in files) {
           if (entity is File) {
-            imageFiles.add(entity);
+            uploadFiles.add(entity);
           }
+          await uploadImage(context, uploadFiles);
         }
-        if (imageFiles.isNotEmpty) {
-          await uploadImage(context, imageFiles);
-        } else {
-          logger.i("이미지 업로드 실패: 업로드할 이미지가 존재하지 않음.");
-        }
+      } else {
+        logger.w("이미지, json 업로드 실패: 업로드할 이미지가 존재하지 않음.");
       }
     } catch (e) {
       logger.e("이미지 업로드 실패: $e");
@@ -324,7 +327,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     if (label == -1) {
       _clearCache();
       throw Exception("gaze is invalid (gaze: -1)");
-    } else{
+    } else {
       logger.i("Classification Result: $label");
     }
 
@@ -481,7 +484,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                   onPressed: () async {
                     await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
                     if (isLoggedIn) {
-                      await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+                      await _uploadFilesBeforeExit(); // 모델 학습할 이미지 서버로 전송
                     }
                     await _clearUpdateImageFiles(); // 전송한 이미지들 삭제
                     Navigator.of(context).pop(true); // "예" 선택 시 종료
@@ -530,7 +533,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
   Future<void> _handleLogout(BuildContext context) async {
     await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
-    await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+    await _uploadFilesBeforeExit(); // 모델 학습할 이미지 서버로 전송
     await _clearUpdateImageFiles();
     logout(context);
   }
