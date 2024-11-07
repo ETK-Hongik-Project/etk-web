@@ -133,8 +133,8 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
           if (entity is File) {
             uploadFiles.add(entity);
           }
-          await uploadImage(context, uploadFiles);
         }
+        await uploadImage(context, uploadFiles);
       } else {
         logger.w("이미지, json 업로드 실패: 업로드할 이미지가 존재하지 않음.");
       }
