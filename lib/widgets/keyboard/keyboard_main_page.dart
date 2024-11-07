@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:etk_web/api/auth/logout.dart';
 import 'package:etk_web/api/image.dart';
+import 'package:etk_web/api/json.dart';
 import 'package:etk_web/main.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:etk_web/widgets/community/community_main_page.dart';
@@ -115,29 +116,27 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
   }
 
   // 종료시 update_image 폴더에 있는 이미지를 서버로 전송.
-  Future<void> _uploadImagesBeforeExit() async {
+  Future<void> _uploadFilesBeforeExit() async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final imageDir = Directory('${directory.path}/update_image');
 
       if (await imageDir.exists()) {
         List<File> uploadFiles = [];
-
         final List<FileSystemEntity> files = imageDir.listSync();
-        if (files.isEmpty) {
-          logger.i("이미지 업로드 실패: 업로드할 이미지가 존재하지 않음.");
-        } else {
-          for (var entity in files) {
-            Map<String, dynamic> jsonMap = model.toJson();
-            _createJsonToUpdateImageFolder(jsonMap);
 
-            if (entity is File) {
-              uploadFiles.add(entity);
-            }
+        Map<String, dynamic> jsonMap = model.toJson();
+        String json = jsonEncode(jsonMap);
+        await uploadJson(context, json);
 
-            await uploadImage(context, uploadFiles);
+        for (var entity in files) {
+          if (entity is File) {
+            uploadFiles.add(entity);
           }
+          await uploadImage(context, uploadFiles);
         }
+      } else {
+        logger.w("이미지, json 업로드 실패: 업로드할 이미지가 존재하지 않음.");
       }
     } catch (e) {
       logger.e("이미지 업로드 실패: $e");
@@ -358,17 +357,6 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
     return label;
   }
 
-  void _createJsonToUpdateImageFolder(Map<String, dynamic> jsonMap) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final targetDir = Directory('${directory.path}/update_image');
-
-    String json = jsonEncode(jsonMap); // json 변환
-    logger.e(json);
-
-    final file = File('${targetDir.path}/prediction.json');
-    file.writeAsString(json);
-  }
-
   /// undoCount가 1인 경우 undo한 파일을 새로 선택된 label과 함께 update_image 폴더로 복사
   Future<void> _createUpdateImage(int label) async {
     if (undoCount != 1) {
@@ -496,7 +484,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
                   onPressed: () async {
                     await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
                     if (isLoggedIn) {
-                      await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+                      await _uploadFilesBeforeExit(); // 모델 학습할 이미지 서버로 전송
                     }
                     await _clearUpdateImageFiles(); // 전송한 이미지들 삭제
                     Navigator.of(context).pop(true); // "예" 선택 시 종료
@@ -545,7 +533,7 @@ class KeyboardMainPageState extends State<KeyboardMainPage>
 
   Future<void> _handleLogout(BuildContext context) async {
     await _clearCacheDirectory(); // 앱 종료 시 캐시에 저장된 이미지와 /app_flutter/image 폴더 제거
-    await _uploadImagesBeforeExit(); // 모델 학습할 이미지 서버로 전송
+    await _uploadFilesBeforeExit(); // 모델 학습할 이미지 서버로 전송
     await _clearUpdateImageFiles();
     logout(context);
   }

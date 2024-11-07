@@ -6,7 +6,6 @@ import 'package:etk_web/api/weight.dart';
 import 'package:etk_web/utils/classification.dart';
 import 'package:etk_web/widgets/auth/login_page.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,8 +19,7 @@ const String local_ip = "10.0.2.2";
 // ignore: constant_identifier_names
 const String dev_ip = "43.202.147.116";
 
-String ip = dev_ip;
-
+String ip = local_ip;
 
 ClassificationModel model = ClassificationModel();
 void main() async {
@@ -62,7 +60,6 @@ void main() async {
   } else {
     logger.w("Model update unavailable: The file does not exist.");
   }
-
 }
 
 class MyApp extends StatefulWidget {
@@ -127,4 +124,3 @@ class _MyAppState extends State<MyApp> {
     return await reissueToken(accessToken, refreshToken);
   }
 }
-
