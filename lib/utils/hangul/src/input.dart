@@ -80,8 +80,11 @@ class HangulInput {
               (k) => _jungCombinations[k] == currentSyllable.jung);
             currentSyllable.jung = combination[0];
             _replaceFinalCharacter(currentSyllable.toString());
-          } else {
-            _replaceFinalCharacter(currentSyllable.cho);
+          } else { //TODO:
+            _replaceFinalCharacter('');
+            pushCharacter(currentSyllable.cho);
+            // ** Original Code Here **
+            //_replaceFinalCharacter(currentSyllable.cho);
           }
         }
       } else {
