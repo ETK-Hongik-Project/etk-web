@@ -97,7 +97,7 @@ class BottomTextField extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.undo),
+                  icon: const Icon(Icons.backspace_outlined),
                   color: Colors.deepPurpleAccent,
                   onPressed: () {
                     if (hangulInput.text.isNotEmpty) {
@@ -112,7 +112,7 @@ class BottomTextField extends StatelessWidget {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.save_as_outlined),
                   onPressed: () => {
                     _saveToFile(displayText),
                     // S0 state로 변경
