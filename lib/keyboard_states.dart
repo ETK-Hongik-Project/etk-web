@@ -196,10 +196,10 @@ class S2State implements KeyboardState {
 
   @override
   void undo(KeyboardMainPageState context) {
-    if(firstSelect == false){
-      context.changeState(S2State(''));
-      return;
-    }
+    // if(firstSelect == false){
+    //   context.changeState(S2State(''));
+    //   return;
+    // }
     switch (prevState.last) {
       case 's0':
         context.changeState(S0State(""));
@@ -340,10 +340,10 @@ class S4State implements KeyboardState {
 
   @override
   void undo(KeyboardMainPageState context) {
-    if(firstSelect == false){
-      context.changeState(S4State(''));
-      return;
-    }
+    // if(firstSelect == false){
+    //   context.changeState(S4State(''));
+    //   return;
+    // }
     switch (prevState.last) {
       case 's0':
         context.changeState(S0State(""));
@@ -424,10 +424,10 @@ class S5State implements KeyboardState {
 
   @override
   void undo(KeyboardMainPageState context) {
-    if(firstSelect == false){
-      context.changeState(S5State(''));
-      return;
-    }
+    // if(firstSelect == false){
+    //   context.changeState(S5State(''));
+    //   return;
+    // }
     switch (prevState.last) {
       case 's0':
         context.changeState(S0State(""));
